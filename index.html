@@ -311,6 +311,7 @@
     <option value="Songwriting / Production">Songwriting / Production</option>
     <option value="Busywork">Busywork</option>
     <option value="Studying">Studying</option>
+    <option value="Client Work">Client Work</option>
   </select>
 
   <div class="timer-display" id="timerDisplay">00:00:00</div>
@@ -340,6 +341,7 @@
       <option value="Songwriting / Production">Songwriting / Production</option>
       <option value="Busywork">Busywork</option>
       <option value="Studying">Studying</option>
+      <option value="Client Work">Client Work</option>
     </select>
   </div>
 
@@ -364,7 +366,10 @@
 
 <!-- WEEKLY PROGRESS -->
 <div class="goals-section">
-  <div class="section-label">◈ This Week's Progress</div>
+  <div class="section-label" style="display:flex;justify-content:space-between;align-items:center;">
+    <span>◈ This Week's Progress</span>
+    <button class="btn" style="padding:6px 12px;font-size:10px;letter-spacing:2px;" onclick="refreshFromSheets()">↻ REFRESH</button>
+  </div>
 
   <div class="project-goal">
     <div class="goal-header">
@@ -405,6 +410,14 @@
     </div>
     <div class="progress-track"><div class="progress-fill" id="bar-Studying" style="width:0%"></div></div>
   </div>
+
+  <div class="project-goal">
+    <div class="goal-header">
+      <span class="goal-name">Client Work</span>
+      <span class="goal-stat"><span id="prog-Client Work">0.0</span> hrs this week</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="bar-Client Work" style="width:0%"></div></div>
+  </div>
 </div>
 
 <!-- SESSION LOG -->
@@ -443,7 +456,8 @@ const GOALS = {
   'Sound Design': 10,
   'Songwriting / Production': 10,
   'Busywork': 3.5,
-  'Studying': 8
+  'Studying': 8,
+  'Client Work': null
 };
 
 let timerInterval = null;
@@ -456,6 +470,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateDateLine();
   renderLog();
   updateProgress();
+  fetchFromSheets();
   const saved = localStorage.getItem('sheetsUrl') || SHEETS_URL;
   if (saved) document.getElementById('sheetsUrl').value = saved;
 });
@@ -578,6 +593,32 @@ function saveSession(entry) {
   showToast('Session logged ✓');
 }
 
+function refreshFromSheets() {
+  showToast('Syncing with sheet...');
+  fetchFromSheets(true);
+}
+
+function fetchFromSheets(force = false) {
+  const url = localStorage.getItem('sheetsUrl') || SHEETS_URL;
+  if (!url) return;
+  fetch(`${url}?action=read`)
+    .then(r => r.json())
+    .then(data => {
+      // Fully replace local sessions with whatever is in the sheet
+      if (data.sessions !== undefined) {
+        sessions = data.sessions.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+        localStorage.setItem('trackerSessions', JSON.stringify(sessions));
+        renderLog();
+        updateProgress();
+        if (force) showToast('Synced ✓');
+      }
+    })
+    .catch(e => {
+      console.warn('Sheet read failed:', e);
+      if (force) showToast('Sync failed', true);
+    });
+}
+
 function sendToSheets(entry) {
   const url = localStorage.getItem('sheetsUrl') || SHEETS_URL;
   if (!url) return;
@@ -615,11 +656,11 @@ function updateProgress() {
   });
   Object.entries(GOALS).forEach(([project, goal]) => {
     const cur = totals[project] || 0;
-    const pct = Math.min((cur / goal) * 100, 100);
+    const pct = goal ? Math.min((cur / goal) * 100, 100) : Math.min(cur * 5, 100);
     const progEl = document.getElementById(`prog-${project}`);
     const barEl  = document.getElementById(`bar-${project}`);
     if (progEl) progEl.textContent = cur.toFixed(1);
-    if (barEl)  { barEl.style.width = pct + '%'; barEl.className = 'progress-fill' + (pct>=100 ? ' over' : ''); }
+    if (barEl)  { barEl.style.width = pct + '%'; barEl.className = 'progress-fill' + (goal && pct>=100 ? ' over' : ''); }
   });
 }
 
