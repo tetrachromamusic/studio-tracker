@@ -133,6 +133,30 @@ header{display:flex;align-items:center;justify-content:space-between;padding:16p
 .btn-sync svg{width:14px;height:14px;stroke:currentColor}
 .btn-sync.syncing{opacity:.6;pointer-events:none}
 
+/* History sub-tabs */
+.history-tabs{display:flex;gap:4px;margin-bottom:14px;background:var(--surface);border-radius:var(--radius);padding:3px}
+.history-tab{padding:7px 14px;border-radius:7px;font-size:.75rem;font-weight:600;color:var(--text3);transition:all .15s;flex:1;text-align:center}
+.history-tab.active{background:var(--accent);color:#fff}
+
+/* Monthly progress */
+.progress-month{font-family:'Bebas Neue',sans-serif;font-size:1.05rem;letter-spacing:1px;color:var(--accent);margin:16px 0 8px;display:flex;align-items:center;gap:6px}
+.progress-month:first-child{margin-top:0}
+.progress-month::after{content:'';flex:1;height:1px;background:var(--border)}
+.progress-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.progress-row:last-child{border-bottom:none}
+.progress-name{font-weight:600;font-size:.82rem;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.progress-type{font-size:.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.progress-stats{display:flex;gap:10px;align-items:center}
+.progress-stat{text-align:right;min-width:50px}
+.progress-stat .val{font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:600}
+.progress-stat .label{font-size:.58rem;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.progress-delta{font-family:'JetBrains Mono',monospace;font-size:.7rem;padding:3px 7px;border-radius:4px;white-space:nowrap}
+.progress-delta.up{color:var(--green);background:var(--green-dim)}
+.progress-delta.down{color:var(--red);background:rgba(239,68,68,.12)}
+.progress-delta.flat{color:var(--text3);background:var(--surface2)}
+.progress-loading{text-align:center;padding:30px 0;color:var(--text3);font-size:.85rem}
+.progress-loading .spin{display:inline-block;margin-bottom:8px}
+
 /* Hidden */
 .hidden{display:none!important}
 
@@ -216,12 +240,14 @@ let state = {
   history: JSON.parse(localStorage.getItem('ironlog_history')||'[]'),
   sheetConnected: false,
   syncing: false,
+  historyTab: 'sessions', // sessions | progress
+  monthlyProgress: null, // fetched from sheet
+  monthlyLoading: false,
   restDuration: parseInt(localStorage.getItem('ironlog_restDuration')||'120'),
   timer: {running:false,seconds:0,total:120,type:'rest',interval:null,worker:null},
   plateMathWeight: 135,
   showPlateModal: false,
   showSettingsSheet: false,
-  toast: null,
 };
 
 // ============================
@@ -259,7 +285,12 @@ async function syncToSheet(workoutData) {
 async function syncAllHistory() {
   const scriptUrl = getScriptUrl();
   state.syncing = true;
-  render();
+  // Targeted update — just update the sync button, no full re-render
+  const syncBtn = document.getElementById('syncAll');
+  if (syncBtn) {
+    syncBtn.classList.add('syncing');
+    syncBtn.innerHTML = '<span class="spin"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg></span>Syncing...';
+  }
   try {
     for (const record of state.history) {
       await fetch(scriptUrl, {
@@ -271,18 +302,18 @@ async function syncAllHistory() {
     }
     state.sheetConnected = true;
     state.syncing = false;
-    showToast(`Synced ${state.history.length} workout(s) to Sheet`, 'success');
+    showToast('Synced ' + state.history.length + ' workout(s) to Sheet', 'success');
   } catch(e) {
     state.sheetConnected = false;
     state.syncing = false;
     showToast('Sync failed — check Settings', 'error');
   }
+  // Only re-render once at end to reset button state
   render();
 }
 
 async function fetchFromSheet() {
-  const scriptUrl = localStorage.getItem('ironlog_scriptUrl');
-  if (!scriptUrl) return null;
+  const scriptUrl = getScriptUrl();
   try {
     const res = await fetch(scriptUrl + '?action=read');
     const data = await res.json();
@@ -291,6 +322,34 @@ async function fetchFromSheet() {
   } catch(e) {
     state.sheetConnected = false;
     return null;
+  }
+}
+
+async function fetchMonthlyProgress() {
+  const scriptUrl = getScriptUrl();
+  state.monthlyLoading = true;
+  // Targeted loading indicator instead of full re-render
+  const container = document.querySelector('.app > .fade-up');
+  const tabContent = container?.querySelector('.history-tabs');
+  if (tabContent && tabContent.nextElementSibling) {
+    tabContent.nextElementSibling.outerHTML = `<div class="progress-loading">
+      <div class="spin"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></div>
+      <div>Loading from Google Sheet...</div>
+    </div>`;
+  }
+  try {
+    const res = await fetch(scriptUrl + '?action=monthly');
+    const data = await res.json();
+    state.sheetConnected = true;
+    state.monthlyProgress = data;
+    state.monthlyLoading = false;
+    render();
+  } catch(e) {
+    state.sheetConnected = false;
+    state.monthlyLoading = false;
+    state.monthlyProgress = null;
+    showToast('Could not load monthly data', 'error');
+    render();
   }
 }
 
@@ -401,13 +460,39 @@ function stopTimer() {
   if (state.timer.worker) state.timer.worker.terminate();
   state.timer.running = false;
   state.timer.worker = null;
-  render();
+  // Targeted update — swap pause button to play button
+  const controls = document.querySelector('.timer-controls');
+  if (controls) {
+    controls.innerHTML = `
+      <button class="timer-btn primary" id="timerStart"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="5,3 19,12 5,21"/></svg></button>
+      <button class="timer-btn" id="timerReset"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>
+    `;
+    // Re-bind just the timer buttons
+    document.getElementById('timerStart')?.addEventListener('click', () => {
+      startTimer(state.timer.type, state.timer.type==='rest'?state.restDuration:0);
+    });
+    document.getElementById('timerReset')?.addEventListener('click', resetTimer);
+  }
 }
 
 function resetTimer() {
-  stopTimer();
+  if (state.timer.worker) state.timer.worker.terminate();
+  state.timer.running = false;
+  state.timer.worker = null;
   state.timer.seconds = 0;
-  render();
+  // Update display directly
+  updateTimerDOM();
+  const controls = document.querySelector('.timer-controls');
+  if (controls) {
+    controls.innerHTML = `
+      <button class="timer-btn primary" id="timerStart"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="5,3 19,12 5,21"/></svg></button>
+      <button class="timer-btn" id="timerReset"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>
+    `;
+    document.getElementById('timerStart')?.addEventListener('click', () => {
+      startTimer(state.timer.type, state.timer.type==='rest'?state.restDuration:0);
+    });
+    document.getElementById('timerReset')?.addEventListener('click', resetTimer);
+  }
 }
 
 // Request notification permission
@@ -463,20 +548,25 @@ function suggestWeight(exerciseId) {
 // ============================
 function saveWorkout() {
   if (!state.workout) return;
+  const now = new Date();
+  const dateOnly = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
   const record = {
-    date: new Date().toISOString(),
-    exercises: state.workout.exercises.map(ex => ({
-      exerciseId: ex.id,
-      name: ex.name,
-      type: ex.type,
-      sets: ex.sets.map(s => ({
-        weight: s.weight || 0,
-        reps: s.reps || 0,
-        done: s.done || false,
-        duration: s.duration || 0,
-      })),
-      totalVolume: ex.sets.reduce((sum,s) => sum + (s.weight||0)*(s.reps||0), 0),
-    }))
+    date: dateOnly,
+    exercises: state.workout.exercises.map(ex => {
+      const completedSets = ex.sets.filter(s => (s.reps && s.reps > 0) || (s.duration && s.duration > 0));
+      return {
+        exerciseId: ex.id,
+        name: ex.name,
+        type: ex.type,
+        sets: completedSets.map(s => ({
+          weight: s.weight || 0,
+          reps: s.reps || 0,
+          done: s.done || false,
+          duration: s.duration || 0,
+        })),
+        totalVolume: completedSets.reduce((sum,s) => sum + (s.weight||0)*(s.reps||0), 0),
+      };
+    }).filter(ex => ex.sets.length > 0)
   };
   state.history.push(record);
   localStorage.setItem('ironlog_history', JSON.stringify(state.history));
@@ -489,20 +579,41 @@ function saveWorkout() {
 }
 
 // ============================
-// TOAST
+// TOAST (standalone — no re-render)
 // ============================
 function showToast(msg, type='success') {
-  state.toast = {msg, type};
-  render();
-  setTimeout(()=>{state.toast=null;render()}, 2500);
+  // Remove existing toast
+  const old = document.getElementById('liveToast');
+  if (old) old.remove();
+  const el = document.createElement('div');
+  el.id = 'liveToast';
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => { el.remove(); }, 2500);
 }
 
 // ============================
 // RENDER ENGINE
 // ============================
+// Track if this is the initial render or a subsequent update
+let _rendered = false;
+
 function render() {
+  // Save scroll position and focused element
+  const scrollY = window.scrollY;
+  const activeEl = document.activeElement;
+  const activeTag = activeEl?.tagName;
+  const activeEi = activeEl?.dataset?.ei;
+  const activeSi = activeEl?.dataset?.si;
+  const activeField = activeEl?.dataset?.field;
+  const selStart = activeEl?.selectionStart;
+  const selEnd = activeEl?.selectionEnd;
+
   const app = document.getElementById('app');
-  app.innerHTML = `
+  // After first render, suppress fade animation to avoid blink
+  const fadeClass = _rendered ? '' : 'fade-up';
+  const html = `
     ${renderHeader()}
     <div class="app">
       ${state.view === 'workout' ? renderWorkout() : ''}
@@ -511,9 +622,24 @@ function render() {
     </div>
     ${renderTimerBar()}
     ${state.showPlateModal ? renderPlateModal() : ''}
-    ${state.toast ? `<div class="toast ${state.toast.type}">${state.toast.msg}</div>` : ''}
   `;
+  app.innerHTML = _rendered ? html.replace(/fade-up/g, '') : html;
+  _rendered = true;
   bindEvents();
+
+  // Restore scroll position
+  window.scrollTo(0, scrollY);
+
+  // Restore focus to the same input if it was active
+  if (activeTag === 'INPUT' && activeEi != null && activeSi != null && activeField) {
+    const target = document.querySelector(`input[data-ei="${activeEi}"][data-si="${activeSi}"][data-field="${activeField}"]`);
+    if (target) {
+      target.focus();
+      if (selStart != null) {
+        try { target.setSelectionRange(selStart, selEnd); } catch(e) {}
+      }
+    }
+  }
 }
 
 function renderHeader() {
@@ -641,9 +767,6 @@ function renderExerciseCard(ex, ei) {
 
       ${ex.sets.map((set, si) => `
         <div class="set-row">
-          <button class="set-check ${set.done?'done':''}" data-ei="${ei}" data-si="${si}">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
-          </button>
           <div class="set-info">
             <div class="set-label">SET ${si+1}</div>
             <div class="set-inputs">
@@ -661,6 +784,9 @@ function renderExerciseCard(ex, ei) {
             </div>
             ${!isTimedCardio && suggested && !set.weight ? `<div class="prev-info">Suggested: <span>${suggested} lbs</span></div>` : ''}
           </div>
+          <button class="set-check ${set.done?'done':''}" data-ei="${ei}" data-si="${si}">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
+          </button>
         </div>
       `).join('')}
 
@@ -676,32 +802,127 @@ function renderExerciseCard(ex, ei) {
 // HISTORY VIEW
 // ============================
 function renderHistory() {
-  if (state.history.length === 0) {
-    return `<div class="card fade-up"><div class="card-title">NO HISTORY YET</div><p style="color:var(--text2);font-size:.85rem">Complete a workout to see your history here.</p></div>`;
-  }
   return `<div class="fade-up">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1px;color:var(--text2)">WORKOUT HISTORY</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1px;color:var(--text2)">HISTORY</div>
       <button class="btn-sync ${state.syncing?'syncing':''}" id="syncAll">
         <span class="${state.syncing?'spin':''}"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg></span>
         ${state.syncing?'Syncing...':'Sync to Sheet'}
       </button>
     </div>
-    ${state.history.slice().reverse().map(w => `
-      <div class="card">
-        <div class="history-date">${new Date(w.date).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</div>
-        ${w.exercises.map(ex => `
-          <div class="history-item">
-            <div class="history-exercise">${ex.name}</div>
-            <div class="history-detail">
-              ${ex.sets.map(s => s.duration ? `${s.duration}s` : `${s.weight||0}×${s.reps||0}`).join(' → ')}
-              ${ex.totalVolume ? ` · Vol: ${ex.totalVolume.toLocaleString()} lbs` : ''}
-            </div>
+
+    <div class="history-tabs">
+      <button class="history-tab ${state.historyTab==='sessions'?'active':''}" data-htab="sessions">Sessions</button>
+      <button class="history-tab ${state.historyTab==='progress'?'active':''}" data-htab="progress">Monthly Progress</button>
+    </div>
+
+    ${state.historyTab === 'sessions' ? renderSessionHistory() : renderMonthlyProgress()}
+  </div>`;
+}
+
+function renderSessionHistory() {
+  if (state.history.length === 0) {
+    return `<div class="card"><div class="card-title">NO SESSIONS YET</div><p style="color:var(--text2);font-size:.85rem">Complete a workout to see your history here.</p></div>`;
+  }
+  return state.history.slice().reverse().map(w => `
+    <div class="card">
+      <div class="history-date">${new Date(w.date + 'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'})}</div>
+      ${w.exercises.map(ex => `
+        <div class="history-item">
+          <div class="history-exercise">${ex.name}</div>
+          <div class="history-detail">
+            ${ex.sets.map(s => s.duration ? `${s.duration}s` : `${s.weight||0}×${s.reps||0}`).join(' → ')}
+            ${ex.totalVolume ? ` · Vol: ${ex.totalVolume.toLocaleString()} lbs` : ''}
           </div>
-        `).join('')}
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+function renderMonthlyProgress() {
+  if (state.monthlyLoading) {
+    return `<div class="progress-loading">
+      <div class="spin"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></div>
+      <div>Loading from Google Sheet...</div>
+    </div>`;
+  }
+
+  if (!state.monthlyProgress || state.monthlyProgress.length === 0) {
+    return `<div class="card">
+      <div class="card-title">NO MONTHLY DATA YET</div>
+      <p style="color:var(--text2);font-size:.85rem;margin-bottom:10px">Monthly progress is read from your Google Sheet. Complete and sync a few workouts to see trends here.</p>
+      <button class="btn btn-primary btn-sm" id="refreshProgress">Load from Sheet</button>
+    </div>`;
+  }
+
+  // Group by month, newest first
+  const byMonth = {};
+  state.monthlyProgress.forEach(row => {
+    const month = row['Month'] || row['month'] || 'Unknown';
+    if (!byMonth[month]) byMonth[month] = [];
+    byMonth[month].push(row);
+  });
+
+  // Sort months newest first
+  const monthKeys = Object.keys(byMonth).sort((a, b) => {
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const parseMonth = (s) => {
+      const parts = s.split(' ');
+      const mi = months.indexOf(parts[0]);
+      const yr = parseInt(parts[1]) || 2025;
+      return yr * 12 + mi;
+    };
+    return parseMonth(b) - parseMonth(a);
+  });
+
+  return `
+    <div style="margin-bottom:8px">
+      <button class="btn btn-secondary btn-sm" id="refreshProgress" style="width:100%">
+        <span style="font-size:.7rem">↻</span> Refresh from Sheet
+      </button>
+    </div>
+    ${monthKeys.map(month => `
+      <div class="progress-month">${month}</div>
+      <div class="card" style="padding:10px 14px">
+        ${byMonth[month].map(row => {
+          const maxW = row['Max Weight'] || row['max_weight'] || 0;
+          const maxR = row['Max Reps'] || row['max_reps'] || 0;
+          const sessions = row['Total Sessions'] || row['total_sessions'] || 0;
+          const totalVol = row['Total Volume'] || row['total_volume'] || 0;
+          const vs = row['vs Prev Month'] || row['vs_prev_month'] || '';
+          const name = row['Exercise'] || row['exercise'] || '';
+          const type = row['Type'] || row['type'] || '';
+
+          let deltaClass = 'flat';
+          if (typeof vs === 'string') {
+            if (vs.indexOf('↑') >= 0) deltaClass = 'up';
+            else if (vs.indexOf('↓') >= 0) deltaClass = 'down';
+          }
+
+          return `
+            <div class="progress-row">
+              <div style="flex:1;min-width:0">
+                <div class="progress-name">${name}</div>
+                <div class="progress-type">${type} · ${sessions} session${sessions!=1?'s':''}</div>
+              </div>
+              <div class="progress-stats">
+                <div class="progress-stat">
+                  <div class="val">${maxW}</div>
+                  <div class="label">Max lbs</div>
+                </div>
+                <div class="progress-stat">
+                  <div class="val">${maxR}</div>
+                  <div class="label">Max reps</div>
+                </div>
+                ${vs ? `<div class="progress-delta ${deltaClass}">${vs}</div>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('')}
       </div>
     `).join('')}
-  </div>`;
+  `;
 }
 
 // ============================
@@ -850,21 +1071,35 @@ function renderPlateModal() {
 // ============================
 // APPS SCRIPT CODE
 // ============================
-const APPS_SCRIPT_CODE = `
-// Google Apps Script for Lift Tracker
+const APPS_SCRIPT_CODE = `// Google Apps Script for Lift Tracker
 // Deploy as Web App: Execute as Me, Access: Anyone
 
 function doGet(e) {
-  const action = e.parameter.action || 'read';
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheet = ss.getSheetByName('WorkoutLog') || ss.insertSheet('WorkoutLog');
+  var action = (e && e.parameter && e.parameter.action) || 'read';
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
 
+  if (action === 'monthly') {
+    var mSheet = ss.getSheetByName('Monthly Progress');
+    if (!mSheet) {
+      return ContentService.createTextOutput(JSON.stringify([])).setMimeType(ContentService.MimeType.JSON);
+    }
+    var data = mSheet.getDataRange().getValues();
+    var headers = data[0] || [];
+    var rows = data.slice(1).map(function(row) {
+      var obj = {};
+      headers.forEach(function(h, i) { obj[h] = row[i]; });
+      return obj;
+    });
+    return ContentService.createTextOutput(JSON.stringify(rows)).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  var sheet = ss.getSheetByName('WorkoutLog') || ss.insertSheet('WorkoutLog');
   if (action === 'read') {
-    const data = sheet.getDataRange().getValues();
-    const headers = data[0] || [];
-    const rows = data.slice(1).map(row => {
-      const obj = {};
-      headers.forEach((h, i) => obj[h] = row[i]);
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0] || [];
+    var rows = data.slice(1).map(function(row) {
+      var obj = {};
+      headers.forEach(function(h, i) { obj[h] = row[i]; });
       return obj;
     });
     return ContentService.createTextOutput(JSON.stringify(rows)).setMimeType(ContentService.MimeType.JSON);
@@ -873,35 +1108,245 @@ function doGet(e) {
 }
 
 function doPost(e) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName('WorkoutLog');
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('WorkoutLog');
 
   if (!sheet) {
     sheet = ss.insertSheet('WorkoutLog');
-    sheet.appendRow(['Date','Exercise','Type','Set','Weight','Reps','Duration','Volume','Session ID']);
+    var headerRow = ['Date', 'Exercise', 'Type', 'Set', 'Weight (lbs)', 'Reps', 'Duration (s)', 'Volume (lbs)', 'Notes'];
+    sheet.appendRow(headerRow);
+    sheet.getRange(1, 1, 1, headerRow.length).setFontWeight('bold').setBackground('#e0e0e0').setFontColor('#333333');
+    sheet.setFrozenRows(1);
+    sheet.setColumnWidth(1, 160);
+    sheet.setColumnWidth(2, 180);
+    sheet.setColumnWidth(9, 200);
   }
 
-  const body = JSON.parse(e.postData.contents);
+  var body = JSON.parse(e.postData.contents);
   if (body.action === 'append' && body.data) {
-    const d = body.data;
-    const sessionId = d.date;
-    d.exercises.forEach(ex => {
-      ex.sets.forEach((set, i) => {
-        sheet.appendRow([
-          d.date,
-          ex.name,
-          ex.type,
-          i + 1,
-          set.weight || 0,
-          set.reps || 0,
-          set.duration || 0,
-          (set.weight || 0) * (set.reps || 0),
-          sessionId
-        ]);
+    var d = body.data;
+    var lastRow = sheet.getLastRow();
+    var sessionDate = new Date(d.date + 'T12:00:00');
+    var dateStr = Utilities.formatDate(sessionDate, Session.getScriptTimeZone(), 'EEE MMM d, yyyy');
+    var monthKey = Utilities.formatDate(sessionDate, Session.getScriptTimeZone(), 'yyyy-MM');
+
+    // Check if today already has a header row — avoid duplicate date headers
+    var todayExists = false;
+    if (lastRow > 1) {
+      // Scan recent rows for today's date header
+      var scanFrom = Math.max(2, lastRow - 50);
+      var vals = sheet.getRange(scanFrom, 1, lastRow - scanFrom + 1, 2).getValues();
+      for (var r = vals.length - 1; r >= 0; r--) {
+        if (vals[r][0] === dateStr && vals[r][1] && vals[r][1].toString().indexOf('SESSION') >= 0) {
+          todayExists = true;
+          break;
+        }
+      }
+    }
+
+    if (!todayExists) {
+      // Blank separator row between days
+      if (lastRow > 1) {
+        sheet.appendRow(['', '', '', '', '', '', '', '', '']);
+        lastRow = sheet.getLastRow();
+        sheet.getRange(lastRow, 1, 1, 9).setBackground('#f0f0f0');
+      }
+
+      // Day header row
+      sheet.appendRow([dateStr, '— SESSION START —', '', '', '', '', '', '', '']);
+      lastRow = sheet.getLastRow();
+      sheet.getRange(lastRow, 1, 1, 9).setFontWeight('bold').setBackground('#e8e8e8').setFontColor('#333333');
+    }
+
+    // Collect session maxes for daily summary and monthly summary
+    var sessionMaxes = [];
+    var dayTotalVol = 0;
+
+    d.exercises.forEach(function(ex) {
+      var maxWeight = 0;
+      var maxReps = 0;
+      var setCount = 0;
+      var exTotalVol = 0;
+
+      ex.sets.forEach(function(set, i) {
+        if ((set.reps && set.reps > 0) || (set.duration && set.duration > 0)) {
+          var vol = (set.weight || 0) * (set.reps || 0);
+          sheet.appendRow([
+            '',
+            ex.name,
+            ex.type,
+            i + 1,
+            set.weight || 0,
+            set.reps || 0,
+            set.duration || 0,
+            vol,
+            ''
+          ]);
+          setCount++;
+          exTotalVol += vol;
+          if (set.weight > maxWeight) maxWeight = set.weight;
+          if (set.reps > maxReps) maxReps = set.reps;
+        }
       });
+
+      if (setCount > 0) {
+        dayTotalVol += exTotalVol;
+        sessionMaxes.push({
+          name: ex.name,
+          type: ex.type,
+          maxWeight: maxWeight,
+          maxReps: maxReps,
+          totalVol: exTotalVol,
+          sets: setCount
+        });
+      }
     });
+
+    // Daily summary block
+    if (sessionMaxes.length > 0) {
+      // Blank line before summary
+      sheet.appendRow(['', '', '', '', '', '', '', '', '']);
+
+      // Summary header
+      sheet.appendRow([dateStr, '— DAILY SUMMARY —', '', '', '', '', '', dayTotalVol, 'Total Volume: ' + dayTotalVol + ' lbs']);
+      lastRow = sheet.getLastRow();
+      sheet.getRange(lastRow, 1, 1, 9).setFontWeight('bold').setBackground('#e8f0fe').setFontColor('#1a56db');
+
+      // One summary line per exercise
+      sessionMaxes.forEach(function(ex) {
+        sheet.appendRow([
+          '',
+          '  ' + ex.name,
+          ex.type,
+          ex.sets + ' sets',
+          'Best: ' + ex.maxWeight,
+          'Best: ' + ex.maxReps,
+          '',
+          ex.totalVol,
+          ex.maxWeight + ' x ' + ex.maxReps + ' | Vol: ' + ex.totalVol
+        ]);
+        lastRow = sheet.getLastRow();
+        sheet.getRange(lastRow, 1, 1, 9).setFontWeight('bold').setFontColor('#1a7f37').setBackground('#f0f7f0');
+      });
+    }
+
+    // Update Monthly Progress sheet
+    updateMonthlyProgress(ss, monthKey, sessionDate, sessionMaxes);
   }
   return ContentService.createTextOutput('{"status":"ok"}').setMimeType(ContentService.MimeType.JSON);
+}
+
+function updateMonthlyProgress(ss, monthKey, sessionDate, sessionMaxes) {
+  var mSheet = ss.getSheetByName('Monthly Progress');
+
+  if (!mSheet) {
+    mSheet = ss.insertSheet('Monthly Progress');
+    var headers = ['Month', 'Exercise', 'Type', 'Max Weight', 'Max Reps', 'Best Set (WxR)', 'Total Sessions', 'Total Volume', 'vs Prev Month'];
+    mSheet.appendRow(headers);
+    mSheet.getRange(1, 1, 1, headers.length).setFontWeight('bold').setBackground('#e0e0e0').setFontColor('#333333');
+    mSheet.setFrozenRows(1);
+    mSheet.setColumnWidth(1, 100);
+    mSheet.setColumnWidth(2, 160);
+    mSheet.setColumnWidth(6, 120);
+    mSheet.setColumnWidth(9, 130);
+  }
+
+  var data = mSheet.getDataRange().getValues();
+  var monthLabel = Utilities.formatDate(sessionDate, Session.getScriptTimeZone(), 'MMM yyyy');
+
+  sessionMaxes.forEach(function(ex) {
+    // Find existing row for this month + exercise
+    var existingRow = -1;
+    for (var r = 1; r < data.length; r++) {
+      if (data[r][0] === monthLabel && data[r][1] === ex.name) {
+        existingRow = r + 1; // 1-indexed for sheet
+        break;
+      }
+    }
+
+    if (existingRow > 0) {
+      // Update existing row if new maxes are higher
+      var curMax = Number(data[existingRow - 1][3]) || 0;
+      var curMaxReps = Number(data[existingRow - 1][4]) || 0;
+      var curSessions = Number(data[existingRow - 1][6]) || 0;
+      var curTotalVol = Number(data[existingRow - 1][7]) || 0;
+
+      var newMax = Math.max(curMax, ex.maxWeight);
+      var newMaxReps = Math.max(curMaxReps, ex.maxReps);
+      var newSessions = curSessions + 1;
+      var newTotalVol = curTotalVol + ex.totalVol;
+
+      mSheet.getRange(existingRow, 4).setValue(newMax);
+      mSheet.getRange(existingRow, 5).setValue(newMaxReps);
+      mSheet.getRange(existingRow, 6).setValue(newMax + ' x ' + newMaxReps);
+      mSheet.getRange(existingRow, 7).setValue(newSessions);
+      mSheet.getRange(existingRow, 8).setValue(newTotalVol);
+
+      // Bold if new PR this session
+      if (ex.maxWeight > curMax) {
+        mSheet.getRange(existingRow, 4).setFontWeight('bold').setFontColor('#ff4d00');
+      }
+
+      // Calculate vs previous month
+      var prevLabel = getPrevMonthLabel(monthLabel);
+      var prevWeight = findPrevMonthMax(data, prevLabel, ex.name);
+      if (prevWeight > 0 && newMax > 0) {
+        var diff = newMax - prevWeight;
+        var pct = Math.round((diff / prevWeight) * 100);
+        var arrow = diff > 0 ? '↑' : diff < 0 ? '↓' : '→';
+        mSheet.getRange(existingRow, 9).setValue(arrow + ' ' + Math.abs(diff) + ' lbs (' + (diff > 0 ? '+' : '') + pct + '%)');
+        if (diff > 0) mSheet.getRange(existingRow, 9).setFontColor('#22c55e');
+        else if (diff < 0) mSheet.getRange(existingRow, 9).setFontColor('#ef4444');
+        else mSheet.getRange(existingRow, 9).setFontColor('#9a9898');
+      }
+    } else {
+      // New row for this month + exercise
+      var prevLabel = getPrevMonthLabel(monthLabel);
+      var prevWeight = findPrevMonthMax(data, prevLabel, ex.name);
+      var vsStr = '';
+      if (prevWeight > 0 && ex.maxWeight > 0) {
+        var diff = ex.maxWeight - prevWeight;
+        var pct = Math.round((diff / prevWeight) * 100);
+        var arrow = diff > 0 ? '↑' : diff < 0 ? '↓' : '→';
+        vsStr = arrow + ' ' + Math.abs(diff) + ' lbs (' + (diff > 0 ? '+' : '') + pct + '%)';
+      }
+
+      mSheet.appendRow([
+        monthLabel,
+        ex.name,
+        ex.type,
+        ex.maxWeight,
+        ex.maxReps,
+        ex.maxWeight + ' x ' + ex.maxReps,
+        1,
+        ex.totalVol,
+        vsStr
+      ]);
+
+      var newRow = mSheet.getLastRow();
+      if (vsStr.indexOf('↑') === 0) mSheet.getRange(newRow, 9).setFontColor('#22c55e');
+      else if (vsStr.indexOf('↓') === 0) mSheet.getRange(newRow, 9).setFontColor('#ef4444');
+    }
+  });
+}
+
+function getPrevMonthLabel(monthLabel) {
+  var parts = monthLabel.split(' ');
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var mIdx = months.indexOf(parts[0]);
+  var year = parseInt(parts[1]);
+  if (mIdx === 0) { mIdx = 11; year--; }
+  else { mIdx--; }
+  return months[mIdx] + ' ' + year;
+}
+
+function findPrevMonthMax(data, prevLabel, exerciseName) {
+  for (var r = 1; r < data.length; r++) {
+    if (data[r][0] === prevLabel && data[r][1] === exerciseName) {
+      return Number(data[r][3]) || 0;
+    }
+  }
+  return 0;
 }
 `;
 
@@ -914,18 +1359,30 @@ function bindEvents() {
     btn.onclick = () => { state.view = btn.dataset.view; render(); };
   });
 
-  // Exercise selection
+  // Exercise selection — targeted toggle
   document.querySelectorAll('.ex-chip').forEach(btn => {
     btn.onclick = () => {
       const {section, id} = btn.dataset;
       const arr = state.selectedExercises[section];
       const idx = arr.indexOf(id);
-      if (idx >= 0) arr.splice(idx, 1);
-      else {
+      if (idx >= 0) {
+        arr.splice(idx, 1);
+        btn.classList.remove('selected');
+      } else {
         const limits = {primary:3, accessory:4, cardio:4};
-        if (arr.length < limits[section]) arr.push(id);
+        if (arr.length < limits[section]) {
+          arr.push(id);
+          btn.classList.add('selected');
+        }
       }
-      render();
+      // Update the start button count
+      const total = state.selectedExercises.primary.length + state.selectedExercises.accessory.length + state.selectedExercises.cardio.length;
+      const startBtn = document.getElementById('startWorkout');
+      if (startBtn) {
+        startBtn.textContent = 'START WORKOUT (' + total + ' exercise' + (total!==1?'s':'') + ')';
+        if (total < 1) { startBtn.disabled = true; startBtn.style.opacity = '.4'; startBtn.style.pointerEvents = 'none'; }
+        else { startBtn.disabled = false; startBtn.style.opacity = '1'; startBtn.style.pointerEvents = 'auto'; }
+      }
     };
   });
 
@@ -952,25 +1409,51 @@ function bindEvents() {
     render();
   });
 
-  // Set check toggle
+  // Set check toggle — targeted update
   document.querySelectorAll('.set-check').forEach(btn => {
     btn.onclick = () => {
       const ei = +btn.dataset.ei, si = +btn.dataset.si;
       const set = state.workout.exercises[ei].sets[si];
       set.done = !set.done;
+
+      // Toggle the check visually
+      btn.classList.toggle('done', set.done);
+
+      // Update volume badges
+      let totalVol = 0;
+      state.workout.exercises.forEach(ex => {
+        ex.sets.forEach(s => { if(s.done) totalVol += (s.weight||0)*(s.reps||0); });
+      });
+      const totalBadge = document.querySelector('.volume-badge');
+      if (totalBadge) totalBadge.textContent = 'VOL: ' + totalVol.toLocaleString() + ' lbs';
+
+      // Start rest timer if checking off
       if (set.done && state.timer.type === 'rest') {
         startTimer('rest', state.restDuration);
       }
-      render();
     };
   });
 
-  // Set inputs
+  // Set inputs — with auto-fill weight from set 1
   document.querySelectorAll('.set-inputs input').forEach(inp => {
     inp.oninput = () => {
       const ei = +inp.dataset.ei, si = +inp.dataset.si;
       const field = inp.dataset.field;
-      state.workout.exercises[ei].sets[si][field] = parseFloat(inp.value) || 0;
+      const val = parseFloat(inp.value) || 0;
+      state.workout.exercises[ei].sets[si][field] = val;
+
+      // Auto-fill: if editing weight on set 1 (si===0), fill remaining sets that are empty or still at old value
+      if (field === 'weight' && si === 0 && val > 0) {
+        const sets = state.workout.exercises[ei].sets;
+        for (let s = 1; s < sets.length; s++) {
+          if (!sets[s].done) {
+            sets[s].weight = val;
+            // Update the DOM input directly — no re-render
+            const otherInput = document.querySelector(`input[data-ei="${ei}"][data-si="${s}"][data-field="weight"]`);
+            if (otherInput) otherInput.value = val;
+          }
+        }
+      }
     };
   });
 
@@ -1020,6 +1503,21 @@ function bindEvents() {
 
   // Sync all history
   document.getElementById('syncAll')?.addEventListener('click', syncAllHistory);
+
+  // History sub-tabs
+  document.querySelectorAll('[data-htab]').forEach(btn => {
+    btn.onclick = () => {
+      state.historyTab = btn.dataset.htab;
+      if (state.historyTab === 'progress' && !state.monthlyProgress && !state.monthlyLoading) {
+        fetchMonthlyProgress();
+      } else {
+        render();
+      }
+    };
+  });
+
+  // Refresh monthly progress
+  document.getElementById('refreshProgress')?.addEventListener('click', fetchMonthlyProgress);
 
   // Plate math
   document.querySelectorAll('[data-platemath]').forEach(btn => {
