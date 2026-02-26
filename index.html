@@ -602,21 +602,24 @@ function fetchFromSheets(force = false) {
   const url = localStorage.getItem('sheetsUrl') || SHEETS_URL;
   if (!url) return;
 
-  // Use JSONP to bypass Google's redirect/CORS issue on Apps Script reads
   const callbackName = 'trackerCallback_' + Date.now();
   const script = document.createElement('script');
-  script.src = `${url}?action=read&callback=${callbackName}`;
+  const fullUrl = `${url}?action=read&callback=${callbackName}`;
+  console.log('Fetching from:', fullUrl);
+  script.src = fullUrl;
 
   const timeout = setTimeout(() => {
     cleanup();
+    console.warn('Sheet read timed out — callback never fired');
     if (force) showToast('Sync failed', true);
-    console.warn('Sheet read timed out');
   }, 10000);
 
   window[callbackName] = function(data) {
+    console.log('JSONP callback fired, data:', JSON.stringify(data).slice(0, 300));
     cleanup();
     if (data.sessions !== undefined) {
       sessions = data.sessions.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+      console.log('Sessions loaded:', sessions.length, 'first:', JSON.stringify(sessions[0]));
       localStorage.setItem('trackerSessions', JSON.stringify(sessions));
       renderLog();
       updateProgress();
@@ -630,7 +633,11 @@ function fetchFromSheets(force = false) {
     if (script.parentNode) script.parentNode.removeChild(script);
   }
 
-  script.onerror = () => { cleanup(); if (force) showToast('Sync failed', true); };
+  script.onerror = (err) => {
+    console.error('Script load error:', err);
+    cleanup();
+    if (force) showToast('Sync failed', true);
+  };
   document.head.appendChild(script);
 }
 
