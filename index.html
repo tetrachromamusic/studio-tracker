@@ -464,7 +464,7 @@ let timerInterval = null;
 let timerSeconds = 0;
 let timerRunning = false;
 let sessions = JSON.parse(localStorage.getItem('trackerSessions') || '[]');
-const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbz1y0h42hiJwhWKQ4GM3jypYsS8AyOOdHRsl2ywEDYqtAdy-jNPCvPI-Bukl4dSD-2x/exec';
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzJfZCIrG2fYlNDS_jtlXGcuAl5h-22KiMH8vLnUPRe_u6-peImNG4yVsc8M7H0Hn15/exec';
 
 document.addEventListener('DOMContentLoaded', () => {
   updateDateLine();
@@ -601,22 +601,37 @@ function refreshFromSheets() {
 function fetchFromSheets(force = false) {
   const url = localStorage.getItem('sheetsUrl') || SHEETS_URL;
   if (!url) return;
-  fetch(`${url}?action=read`)
-    .then(r => r.json())
-    .then(data => {
-      // Fully replace local sessions with whatever is in the sheet
-      if (data.sessions !== undefined) {
-        sessions = data.sessions.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-        localStorage.setItem('trackerSessions', JSON.stringify(sessions));
-        renderLog();
-        updateProgress();
-        if (force) showToast('Synced ✓');
-      }
-    })
-    .catch(e => {
-      console.warn('Sheet read failed:', e);
-      if (force) showToast('Sync failed', true);
-    });
+
+  // Use JSONP to bypass Google's redirect/CORS issue on Apps Script reads
+  const callbackName = 'trackerCallback_' + Date.now();
+  const script = document.createElement('script');
+  script.src = `${url}?action=read&callback=${callbackName}`;
+
+  const timeout = setTimeout(() => {
+    cleanup();
+    if (force) showToast('Sync failed', true);
+    console.warn('Sheet read timed out');
+  }, 10000);
+
+  window[callbackName] = function(data) {
+    cleanup();
+    if (data.sessions !== undefined) {
+      sessions = data.sessions.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+      localStorage.setItem('trackerSessions', JSON.stringify(sessions));
+      renderLog();
+      updateProgress();
+      if (force) showToast('Synced ✓');
+    }
+  };
+
+  function cleanup() {
+    clearTimeout(timeout);
+    delete window[callbackName];
+    if (script.parentNode) script.parentNode.removeChild(script);
+  }
+
+  script.onerror = () => { cleanup(); if (force) showToast('Sync failed', true); };
+  document.head.appendChild(script);
 }
 
 function sendToSheets(entry) {
