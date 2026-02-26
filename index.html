@@ -408,6 +408,11 @@
       <button class="btn btn-reset"               onclick="resetTimer()">↺ Reset</button>
     </div>
 
+    <div class="input-group" style="margin-bottom:14px">
+      <span class="input-label">Notes (optional)</span>
+      <textarea class="input-field" id="timerNotes" placeholder="what are you working on?"></textarea>
+    </div>
+
     <button class="btn btn-log" id="btnLogTimer" onclick="logTimerSession()" disabled>
       LOG SESSION →
     </button>
@@ -589,13 +594,52 @@ const PALETTE = [
   '#fbbf24','#34d399','#f87171','#60a5fa','#e879f9'
 ];
 
-const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwLYKqwloybXrY0JhLI4ys_QZrOVx-B0mXzxl6FD98a3c-6SsNNMwF8DlqkJR3cauXL/exec';
+const SHEETS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbwLYKqwloybXrY0JhLI4ys_QZrOVx-B0mXzxl6FD98a3c-6SsNNMwF8DlqkJR3cauXL/exec';
+
+function getSheetsUrl() {
+  return localStorage.getItem('sheetsUrl') || SHEETS_URL_DEFAULT;
+}
 
 // ── STATE ──────────────────────────────────────────────
-let timerInterval = null;
-let timerSeconds  = 0;
-let timerRunning  = false;
+let timerInterval  = null;
+let timerRunning   = false;
+let timerStartedAt = null;   // Date when timer last started/resumed
+let timerAccrued   = 0;      // Seconds accumulated before last pause
 let sessions = JSON.parse(localStorage.getItem('trackerSessions') || '[]');
+
+// Restore timer state if page was reloaded mid-session
+(function restoreTimer() {
+  const saved = localStorage.getItem('timerState');
+  if (!saved) return;
+  const state = JSON.parse(saved);
+  timerAccrued   = state.accrued || 0;
+  timerStartedAt = state.startedAt ? new Date(state.startedAt) : null;
+  if (state.project) document.getElementById('timerProject').value = state.project;
+  if (state.notes)   { /* set after DOM ready */ }
+  if (timerStartedAt) {
+    // Was running when page closed — resume display
+    timerRunning = true;
+    document.getElementById('timerDisplay').className = 'timer-display running';
+    document.getElementById('btnStart').disabled  = true;
+    document.getElementById('btnPause').disabled  = false;
+    document.getElementById('btnStop').disabled   = false;
+    document.getElementById('btnLogTimer').disabled = true;
+    timerInterval = setInterval(tickTimer, 500);
+  } else if (timerAccrued > 0) {
+    // Was paused
+    document.getElementById('timerDisplay').textContent = formatTime(timerAccrued);
+    document.getElementById('timerDisplay').className = 'timer-display paused';
+    document.getElementById('btnStart').disabled  = false;
+    document.getElementById('btnStart').textContent = '▶ Resume';
+    document.getElementById('btnStop').disabled   = false;
+    document.getElementById('btnLogTimer').disabled = false;
+  }
+  if (state.notes) {
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('timerNotes').value = state.notes || '';
+    });
+  }
+})();
 
 // ── INIT ───────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
@@ -605,8 +649,7 @@ document.addEventListener('DOMContentLoaded', () => {
   populateMonthSelect();
   buildRetro();
   fetchFromSheets();
-  const saved = localStorage.getItem('sheetsUrl') || SHEETS_URL;
-  if (saved) document.getElementById('sheetsUrl').value = saved;
+  document.getElementById('sheetsUrl').value = getSheetsUrl();
 });
 
 function updateDateLine() {
@@ -634,44 +677,73 @@ function formatTime(secs) {
   return `${h}:${m}:${s}`;
 }
 
+function getElapsed() {
+  const running = timerStartedAt ? Math.floor((Date.now() - timerStartedAt.getTime()) / 1000) : 0;
+  return timerAccrued + running;
+}
+
+function tickTimer() {
+  document.getElementById('timerDisplay').textContent = formatTime(getElapsed());
+}
+
+function saveTimerState() {
+  localStorage.setItem('timerState', JSON.stringify({
+    accrued:   timerAccrued,
+    startedAt: timerStartedAt ? timerStartedAt.toISOString() : null,
+    project:   document.getElementById('timerProject').value,
+    notes:     document.getElementById('timerNotes').value
+  }));
+}
+
+function clearTimerState() {
+  localStorage.removeItem('timerState');
+}
+
 function startTimer() {
   if (!document.getElementById('timerProject').value) { showToast('Select a project first', true); return; }
-  timerRunning = true;
+  timerRunning   = true;
+  timerStartedAt = new Date();
   document.getElementById('timerDisplay').className = 'timer-display running';
-  document.getElementById('btnStart').disabled = true;
-  document.getElementById('btnPause').disabled = false;
-  document.getElementById('btnStop').disabled  = false;
+  document.getElementById('btnStart').textContent = '▶ Start';
+  document.getElementById('btnStart').disabled  = true;
+  document.getElementById('btnPause').disabled  = false;
+  document.getElementById('btnStop').disabled   = false;
   document.getElementById('btnLogTimer').disabled = true;
-  timerInterval = setInterval(() => {
-    timerSeconds++;
-    document.getElementById('timerDisplay').textContent = formatTime(timerSeconds);
-  }, 1000);
+  timerInterval = setInterval(tickTimer, 500);
+  saveTimerState();
 }
 
 function pauseTimer() {
+  timerAccrued   = getElapsed();
+  timerStartedAt = null;
+  timerRunning   = false;
   clearInterval(timerInterval);
-  timerRunning = false;
   document.getElementById('timerDisplay').className = 'timer-display paused';
   document.getElementById('btnStart').disabled  = false;
   document.getElementById('btnStart').textContent = '▶ Resume';
   document.getElementById('btnPause').disabled  = true;
+  saveTimerState();
 }
 
 function stopTimer() {
+  timerAccrued   = getElapsed();
+  timerStartedAt = null;
+  timerRunning   = false;
   clearInterval(timerInterval);
-  timerRunning = false;
   document.getElementById('timerDisplay').className = 'timer-display';
   document.getElementById('btnStart').disabled  = false;
   document.getElementById('btnStart').textContent = '▶ Start';
   document.getElementById('btnPause').disabled  = true;
   document.getElementById('btnStop').disabled   = true;
-  if (timerSeconds > 0) document.getElementById('btnLogTimer').disabled = false;
+  if (timerAccrued > 0) document.getElementById('btnLogTimer').disabled = false;
+  saveTimerState();
 }
 
 function resetTimer() {
+  timerAccrued   = 0;
+  timerStartedAt = null;
+  timerRunning   = false;
   clearInterval(timerInterval);
-  timerRunning = false;
-  timerSeconds = 0;
   document.getElementById('timerDisplay').textContent = '00:00:00';
   document.getElementById('timerDisplay').className = 'timer-display';
   document.getElementById('btnStart').textContent = '▶ Start';
@@ -679,22 +751,26 @@ function resetTimer() {
   document.getElementById('btnPause').disabled  = true;
   document.getElementById('btnStop').disabled   = true;
   document.getElementById('btnLogTimer').disabled = true;
+  clearTimerState();
 }
 
 function logTimerSession() {
   const project = document.getElementById('timerProject').value;
-  if (!project)         { showToast('Select a project', true); return; }
-  if (timerSeconds===0) { showToast('No time recorded', true); return; }
+  const notes   = document.getElementById('timerNotes').value.trim();
+  const elapsed = getElapsed();
+  if (!project)      { showToast('Select a project', true); return; }
+  if (elapsed === 0) { showToast('No time recorded', true); return; }
   const entry = {
     project,
-    hours: Math.round(timerSeconds / 36) / 100,
-    durationLabel: formatTime(timerSeconds),
-    notes: '',
+    hours: Math.round(elapsed / 36) / 100,
+    durationLabel: formatTime(elapsed),
+    notes,
     timestamp: new Date().toISOString()
   };
   saveSession(entry);
   resetTimer();
   document.getElementById('timerProject').value = '';
+  document.getElementById('timerNotes').value   = '';
 }
 
 // ── MANUAL ENTRY ───────────────────────────────────────
@@ -740,10 +816,7 @@ function refreshFromSheets() {
 }
 
 function fetchFromSheets(force = false) {
-  const url = localStorage.getItem('sheetsUrl') || SHEETS_URL;
-  if (!url) return;
-
-  const callbackName = 'trackerCallback_' + Date.now();
+  const url = getSheetsUrl();
   const script = document.createElement('script');
   script.src = `${url}?action=read&callback=${callbackName}`;
 
@@ -776,8 +849,7 @@ function fetchFromSheets(force = false) {
 }
 
 function sendToSheets(entry) {
-  const url = localStorage.getItem('sheetsUrl') || SHEETS_URL;
-  if (!url) return;
+  const url = getSheetsUrl();
   const params = new URLSearchParams({
     date:     new Date(entry.timestamp).toLocaleDateString(),
     time:     new Date(entry.timestamp).toLocaleTimeString(),
@@ -969,7 +1041,8 @@ function saveConfig() {
   const url = document.getElementById('sheetsUrl').value.trim();
   if (!url) { showToast('Paste your URL first', true); return; }
   localStorage.setItem('sheetsUrl', url);
-  showToast('URL saved ✓');
+  showToast('URL saved ✓ — syncing now...');
+  fetchFromSheets(true);
 }
 
 // ── TOAST ──────────────────────────────────────────────
