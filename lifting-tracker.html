@@ -233,9 +233,14 @@ const SHEET_API_BASE = 'https://sheets.googleapis.com/v4/spreadsheets';
 // The user deploys a simple Apps Script that handles read/write
 // For now we use localStorage + optional sheet export/import
 
+const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwA8bGbR4GynhmzaSn9x2Qra2D_-DtAGE5tQxg9e4HHcSJd1lemI3ftbJ9prvuYX8dL/exec';
+
+function getScriptUrl() {
+  return localStorage.getItem('ironlog_scriptUrl') || DEFAULT_SCRIPT_URL;
+}
+
 async function syncToSheet(workoutData) {
-  const scriptUrl = localStorage.getItem('ironlog_scriptUrl');
-  if (!scriptUrl) return;
+  const scriptUrl = getScriptUrl();
   try {
     await fetch(scriptUrl, {
       method: 'POST',
@@ -252,8 +257,7 @@ async function syncToSheet(workoutData) {
 }
 
 async function syncAllHistory() {
-  const scriptUrl = localStorage.getItem('ironlog_scriptUrl');
-  if (!scriptUrl) { showToast('Configure Sheet URL in Settings first', 'error'); return; }
+  const scriptUrl = getScriptUrl();
   state.syncing = true;
   render();
   try {
@@ -708,10 +712,17 @@ function renderSettings() {
     <div class="card">
       <div class="card-title"><div class="dot"></div>GOOGLE SHEETS SYNC</div>
       <p style="font-size:.78rem;color:var(--text2);margin-bottom:12px">
-        Deploy the Apps Script to your Google Sheet, then paste the Web App URL here. The script is attached to your sheet so no separate ID is needed.
+        Connected to your Google Sheet by default. Only enter a URL below if you want to override with a different sheet.
       </p>
-      <input type="text" id="scriptUrl" placeholder="Apps Script Web App URL" value="${localStorage.getItem('ironlog_scriptUrl')||''}" style="margin-bottom:8px">
-      <button class="btn btn-primary btn-sm" id="saveSheetConfig">Save</button>
+      <div style="font-size:.68rem;color:var(--green);margin-bottom:8px;display:flex;align-items:center;gap:4px">
+        <span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block"></span>
+        Default sheet connected
+      </div>
+      <input type="text" id="scriptUrl" placeholder="Override URL (optional)" value="${localStorage.getItem('ironlog_scriptUrl')||''}" style="margin-bottom:8px">
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary btn-sm" id="saveSheetConfig">Save Override</button>
+        ${localStorage.getItem('ironlog_scriptUrl') ? '<button class="btn btn-secondary btn-sm" id="clearOverride">Reset to Default</button>' : ''}
+      </div>
 
       <details style="margin-top:16px">
         <summary style="font-size:.78rem;color:var(--accent);cursor:pointer;font-weight:600">📋 Apps Script Setup Instructions</summary>
@@ -1037,8 +1048,20 @@ function bindEvents() {
   // Settings
   document.getElementById('saveSheetConfig')?.addEventListener('click', () => {
     const url = document.getElementById('scriptUrl').value.trim();
-    localStorage.setItem('ironlog_scriptUrl', url);
-    showToast(url ? 'Web App URL saved!' : 'URL cleared', 'success');
+    if (url) {
+      localStorage.setItem('ironlog_scriptUrl', url);
+      showToast('Override URL saved!', 'success');
+    } else {
+      localStorage.removeItem('ironlog_scriptUrl');
+      showToast('Using default sheet', 'success');
+    }
+    render();
+  });
+
+  document.getElementById('clearOverride')?.addEventListener('click', () => {
+    localStorage.removeItem('ironlog_scriptUrl');
+    showToast('Reset to default sheet', 'success');
+    render();
   });
 
   document.getElementById('restDuration')?.addEventListener('change', (e) => {
