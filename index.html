@@ -31,7 +31,7 @@
   }
 
   header {
-    padding: 24px 0 32px;
+    padding: 24px 0 20px;
     border-bottom: 1px solid var(--border);
     margin-bottom: 28px;
   }
@@ -52,7 +52,41 @@
     margin-top: 6px;
   }
 
-  .timer-section, .manual-section, .goals-section, .log-section, .config-section {
+  /* NAV TABS */
+  .nav-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .nav-tab {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    background: var(--surface2);
+    color: var(--muted);
+    text-align: center;
+    transition: all 0.15s;
+  }
+
+  .nav-tab.active {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+    font-weight: 500;
+  }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* CARDS */
+  .card {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 4px;
@@ -68,6 +102,16 @@
     margin-bottom: 16px;
   }
 
+  .section-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .section-label-row .section-label { margin-bottom: 0; }
+
+  /* FORM ELEMENTS */
   .project-select {
     width: 100%;
     background: var(--surface2);
@@ -85,69 +129,6 @@
   }
 
   .project-select:focus { border-color: var(--accent); }
-
-  .timer-display {
-    text-align: center;
-    font-family: 'Bebas Neue', cursive;
-    font-size: 72px;
-    letter-spacing: 6px;
-    color: var(--text);
-    line-height: 1;
-    margin-bottom: 20px;
-    transition: color 0.3s;
-  }
-
-  .timer-display.running { color: var(--accent); }
-  .timer-display.paused  { color: var(--accent2); }
-
-  .timer-controls {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 16px;
-  }
-
-  .btn {
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    padding: 14px;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.15s;
-    background: var(--surface2);
-    color: var(--text);
-  }
-
-  .btn:active { transform: scale(0.97); }
-
-  .btn-start  { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 500; }
-  .btn-pause  { background: var(--accent2); color: #000; border-color: var(--accent2); }
-  .btn-stop   { border-color: var(--danger); color: var(--danger); }
-  .btn-reset  { border-color: var(--border); color: var(--muted); }
-
-  .btn-log {
-    width: 100%;
-    background: var(--accent);
-    color: #000;
-    border-color: var(--accent);
-    font-size: 13px;
-    font-weight: 500;
-    padding: 16px;
-    margin-top: 4px;
-  }
-
-  .btn-log:hover { background: #d4ff1a; }
-  .btn:disabled  { opacity: 0.3; cursor: not-allowed; }
-
-  .manual-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 14px;
-  }
 
   .input-group { display: flex; flex-direction: column; gap: 6px; }
 
@@ -172,12 +153,64 @@
   }
 
   .input-field:focus { border-color: var(--accent); }
+  textarea.input-field { resize: vertical; min-height: 70px; }
 
-  textarea.input-field {
-    resize: vertical;
-    min-height: 70px;
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+
+  /* BUTTONS */
+  .btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--surface2);
+    color: var(--text);
   }
 
+  .btn:active { transform: scale(0.97); }
+  .btn-start  { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 500; }
+  .btn-pause  { background: var(--accent2); color: #000; border-color: var(--accent2); }
+  .btn-stop   { border-color: var(--danger); color: var(--danger); }
+  .btn-reset  { border-color: var(--border); color: var(--muted); }
+  .btn-sm     { padding: 6px 12px; font-size: 10px; }
+
+  .btn-log {
+    width: 100%;
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 16px;
+    margin-top: 4px;
+  }
+
+  .btn-log:hover { background: #d4ff1a; }
+  .btn:disabled  { opacity: 0.3; cursor: not-allowed; }
+
+  /* TIMER */
+  .timer-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+
+  .timer-display {
+    text-align: center;
+    font-family: 'Bebas Neue', cursive;
+    font-size: 72px;
+    letter-spacing: 6px;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 20px;
+    transition: color 0.3s;
+  }
+
+  .timer-display.running { color: var(--accent); }
+  .timer-display.paused  { color: var(--accent2); }
+
+  /* PROGRESS BARS */
   .project-goal { margin-bottom: 18px; }
   .project-goal:last-child { margin-bottom: 0; }
 
@@ -189,16 +222,10 @@
   }
 
   .goal-name { font-size: 12px; letter-spacing: 1px; }
-
   .goal-stat { font-size: 11px; color: var(--muted); }
   .goal-stat span { color: var(--accent); }
 
-  .progress-track {
-    height: 3px;
-    background: var(--border);
-    border-radius: 2px;
-    overflow: hidden;
-  }
+  .progress-track { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
 
   .progress-fill {
     height: 100%;
@@ -209,6 +236,7 @@
 
   .progress-fill.over { background: var(--accent2); }
 
+  /* SESSION LOG */
   .log-entry {
     display: flex;
     justify-content: space-between;
@@ -220,29 +248,72 @@
   }
 
   .log-entry:last-child { border-bottom: none; }
-
-  .log-project {
-    color: var(--accent);
-    letter-spacing: 1px;
-    font-size: 11px;
-    text-transform: uppercase;
-    margin-bottom: 2px;
-  }
-
-  .log-notes { color: var(--muted); font-style: italic; font-size: 11px; margin-top: 2px; }
-
-  .log-time { color: var(--text); white-space: nowrap; text-align: right; }
-
+  .log-project { color: var(--accent); letter-spacing: 1px; font-size: 11px; text-transform: uppercase; margin-bottom: 2px; }
+  .log-notes   { color: var(--muted); font-style: italic; font-size: 11px; margin-top: 2px; }
+  .log-time    { color: var(--text); white-space: nowrap; text-align: right; }
   .log-timestamp { color: var(--muted); font-size: 10px; margin-top: 2px; }
 
-  .empty-log {
-    color: var(--muted);
-    font-size: 12px;
-    font-style: italic;
-    text-align: center;
-    padding: 16px 0;
+  .empty-log { color: var(--muted); font-size: 12px; font-style: italic; text-align: center; padding: 16px 0; }
+
+  /* RETRO VIEW */
+  .retro-month-select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    padding: 10px 14px;
+    border-radius: 4px;
+    appearance: none;
+    cursor: pointer;
+    outline: none;
+    margin-bottom: 20px;
   }
 
+  .retro-stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .retro-stat {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 14px;
+  }
+
+  .retro-stat-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .retro-stat-value { font-family: 'Bebas Neue', cursive; font-size: 32px; color: var(--accent); letter-spacing: 2px; line-height: 1; }
+  .retro-stat-sub   { font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+  .retro-project-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .retro-project-row:last-child { border-bottom: none; }
+
+  .retro-proj-name { font-size: 11px; letter-spacing: 1px; flex: 1; }
+
+  .retro-proj-bar-wrap { flex: 2; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .retro-proj-bar { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
+
+  .retro-proj-hrs  { font-size: 11px; color: var(--accent); white-space: nowrap; width: 52px; text-align: right; }
+  .retro-proj-pct  { font-size: 10px; color: var(--muted); white-space: nowrap; width: 36px; text-align: right; }
+
+  /* DONUT CHART */
+  .donut-wrap { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; }
+  .donut-legend { flex: 1; }
+  .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 11px; }
+  .legend-dot  { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* CONFIG */
   .config-toggle {
     font-size: 10px;
     letter-spacing: 3px;
@@ -255,7 +326,6 @@
   }
 
   .config-toggle:hover { color: var(--text); }
-
   .config-body { margin-top: 18px; display: none; }
   .config-body.open { display: block; }
 
@@ -272,6 +342,7 @@
 
   .config-hint code { color: var(--accent); font-family: 'DM Mono', monospace; }
 
+  /* TOAST */
   .toast {
     position: fixed;
     bottom: 24px;
@@ -301,40 +372,21 @@
   <div class="date-line" id="dateLine"></div>
 </header>
 
-<!-- TIMER -->
-<div class="timer-section">
-  <div class="section-label">⏱ Timer</div>
-  <select class="project-select" id="timerProject">
-    <option value="">— select project —</option>
-    <option value="Vocals">Practice Vocals</option>
-    <option value="Sound Design">Sound Design</option>
-    <option value="Songwriting / Production">Songwriting / Production</option>
-    <option value="Busywork">Busywork</option>
-    <option value="Studying">Studying</option>
-    <option value="Client Work">Client Work</option>
-  </select>
-
-  <div class="timer-display" id="timerDisplay">00:00:00</div>
-
-  <div class="timer-controls">
-    <button class="btn btn-start" id="btnStart" onclick="startTimer()">▶ Start</button>
-    <button class="btn btn-pause" id="btnPause" onclick="pauseTimer()" disabled>⏸ Pause</button>
-    <button class="btn btn-stop"  id="btnStop"  onclick="stopTimer()"  disabled>■ Stop</button>
-    <button class="btn btn-reset"               onclick="resetTimer()">↺ Reset</button>
-  </div>
-
-  <button class="btn btn-log" id="btnLogTimer" onclick="logTimerSession()" disabled>
-    LOG SESSION →
-  </button>
+<!-- NAV -->
+<div class="nav-tabs">
+  <button class="nav-tab active" onclick="switchView('track')">⏱ Track</button>
+  <button class="nav-tab" onclick="switchView('retro')">◈ Monthly Retro</button>
 </div>
 
-<!-- MANUAL ENTRY -->
-<div class="manual-section">
-  <div class="section-label">✎ Manual Entry</div>
+<!-- ══════════════════════════════════════════════════ -->
+<!--  TRACK VIEW                                        -->
+<!-- ══════════════════════════════════════════════════ -->
+<div class="view active" id="view-track">
 
-  <div class="input-group" style="margin-bottom:14px">
-    <span class="input-label">Project</span>
-    <select class="project-select" id="manualProject" style="margin-bottom:0">
+  <!-- TIMER -->
+  <div class="card">
+    <div class="section-label">⏱ Timer</div>
+    <select class="project-select" id="timerProject">
       <option value="">— select project —</option>
       <option value="Vocals">Practice Vocals</option>
       <option value="Sound Design">Sound Design</option>
@@ -342,134 +394,216 @@
       <option value="Busywork">Busywork</option>
       <option value="Studying">Studying</option>
       <option value="Client Work">Client Work</option>
+      <option value="Downtime">Downtime</option>
+      <option value="Gym">Gym</option>
+      <option value="Creative Coding / Sidequests">Creative Coding / Sidequests</option>
     </select>
-  </div>
 
-  <div class="manual-row">
-    <div class="input-group">
-      <span class="input-label">Hours</span>
-      <input type="number" class="input-field" id="manualHours" min="0" max="24" placeholder="0" step="1">
+    <div class="timer-display" id="timerDisplay">00:00:00</div>
+
+    <div class="timer-controls">
+      <button class="btn btn-start" id="btnStart" onclick="startTimer()">▶ Start</button>
+      <button class="btn btn-pause" id="btnPause" onclick="pauseTimer()" disabled>⏸ Pause</button>
+      <button class="btn btn-stop"  id="btnStop"  onclick="stopTimer()"  disabled>■ Stop</button>
+      <button class="btn btn-reset"               onclick="resetTimer()">↺ Reset</button>
     </div>
-    <div class="input-group">
-      <span class="input-label">Minutes</span>
-      <input type="number" class="input-field" id="manualMinutes" min="0" max="59" placeholder="0">
-    </div>
+
+    <button class="btn btn-log" id="btnLogTimer" onclick="logTimerSession()" disabled>
+      LOG SESSION →
+    </button>
   </div>
 
-  <div class="input-group" style="margin-bottom:14px">
-    <span class="input-label">Notes (optional)</span>
-    <textarea class="input-field" id="manualNotes" placeholder="what did you work on?"></textarea>
-  </div>
+  <!-- MANUAL ENTRY -->
+  <div class="card">
+    <div class="section-label">✎ Manual Entry</div>
 
-  <button class="btn btn-log" onclick="logManualSession()">LOG ENTRY →</button>
-</div>
-
-<!-- WEEKLY PROGRESS -->
-<div class="goals-section">
-  <div class="section-label" style="display:flex;justify-content:space-between;align-items:center;">
-    <span>◈ This Week's Progress</span>
-    <button class="btn" style="padding:6px 12px;font-size:10px;letter-spacing:2px;" onclick="refreshFromSheets()">↻ REFRESH</button>
-  </div>
-
-  <div class="project-goal">
-    <div class="goal-header">
-      <span class="goal-name">Practice Vocals</span>
-      <span class="goal-stat"><span id="prog-Vocals">0.0</span> / 7 hrs</span>
-    </div>
-    <div class="progress-track"><div class="progress-fill" id="bar-Vocals" style="width:0%"></div></div>
-  </div>
-
-  <div class="project-goal">
-    <div class="goal-header">
-      <span class="goal-name">Sound Design</span>
-      <span class="goal-stat"><span id="prog-Sound Design">0.0</span> / 10 hrs</span>
-    </div>
-    <div class="progress-track"><div class="progress-fill" id="bar-Sound Design" style="width:0%"></div></div>
-  </div>
-
-  <div class="project-goal">
-    <div class="goal-header">
-      <span class="goal-name">Songwriting / Production</span>
-      <span class="goal-stat"><span id="prog-Songwriting / Production">0.0</span> / 10 hrs</span>
-    </div>
-    <div class="progress-track"><div class="progress-fill" id="bar-Songwriting / Production" style="width:0%"></div></div>
-  </div>
-
-  <div class="project-goal">
-    <div class="goal-header">
-      <span class="goal-name">Busywork</span>
-      <span class="goal-stat"><span id="prog-Busywork">0.0</span> / 3.5 hrs</span>
-    </div>
-    <div class="progress-track"><div class="progress-fill" id="bar-Busywork" style="width:0%"></div></div>
-  </div>
-
-  <div class="project-goal">
-    <div class="goal-header">
-      <span class="goal-name">Studying</span>
-      <span class="goal-stat"><span id="prog-Studying">0.0</span> / 8 hrs</span>
-    </div>
-    <div class="progress-track"><div class="progress-fill" id="bar-Studying" style="width:0%"></div></div>
-  </div>
-
-  <div class="project-goal">
-    <div class="goal-header">
-      <span class="goal-name">Client Work</span>
-      <span class="goal-stat"><span id="prog-Client Work">0.0</span> hrs this week</span>
-    </div>
-    <div class="progress-track"><div class="progress-fill" id="bar-Client Work" style="width:0%"></div></div>
-  </div>
-</div>
-
-<!-- SESSION LOG -->
-<div class="log-section">
-  <div class="section-label">◎ Session Log</div>
-  <div id="logList"><div class="empty-log">no sessions logged yet</div></div>
-</div>
-
-<!-- GOOGLE SHEETS CONFIG -->
-<div class="config-section">
-  <div class="config-toggle" onclick="toggleConfig()">
-    <span>⚙ Google Sheets Setup</span>
-    <span id="configArrow">▼</span>
-  </div>
-  <div class="config-body" id="configBody">
-    <div class="config-hint">
-      1. Open your Google Sheet → <code>Extensions → Apps Script</code><br>
-      2. Paste the code from <code>apps-script.js</code> and save<br>
-      3. Click <code>Deploy → New deployment → Web App</code><br>
-      4. Set "Who has access" to <code>Anyone</code><br>
-      5. Copy the deployment URL and paste it below
-    </div>
     <div class="input-group" style="margin-bottom:14px">
-      <span class="input-label">Apps Script Web App URL</span>
-      <input type="text" class="input-field" id="sheetsUrl" placeholder="https://script.google.com/macros/s/...">
+      <span class="input-label">Project</span>
+      <select class="project-select" id="manualProject" style="margin-bottom:0">
+        <option value="">— select project —</option>
+        <option value="Vocals">Practice Vocals</option>
+        <option value="Sound Design">Sound Design</option>
+        <option value="Songwriting / Production">Songwriting / Production</option>
+        <option value="Busywork">Busywork</option>
+        <option value="Studying">Studying</option>
+        <option value="Client Work">Client Work</option>
+        <option value="Downtime">Downtime</option>
+        <option value="Gym">Gym</option>
+        <option value="Creative Coding / Sidequests">Creative Coding / Sidequests</option>
+      </select>
     </div>
-    <button class="btn btn-log" onclick="saveConfig()">SAVE URL →</button>
+
+    <div class="two-col">
+      <div class="input-group">
+        <span class="input-label">Hours</span>
+        <input type="number" class="input-field" id="manualHours" min="0" max="24" placeholder="0" step="1">
+      </div>
+      <div class="input-group">
+        <span class="input-label">Minutes</span>
+        <input type="number" class="input-field" id="manualMinutes" min="0" max="59" placeholder="0">
+      </div>
+    </div>
+
+    <div class="input-group" style="margin-bottom:14px">
+      <span class="input-label">Notes (optional)</span>
+      <textarea class="input-field" id="manualNotes" placeholder="what did you work on?"></textarea>
+    </div>
+
+    <button class="btn btn-log" onclick="logManualSession()">LOG ENTRY →</button>
   </div>
-</div>
+
+  <!-- WEEKLY PROGRESS -->
+  <div class="card">
+    <div class="section-label-row">
+      <span class="section-label">◈ This Week's Progress</span>
+      <button class="btn btn-sm" onclick="refreshFromSheets()">↻ Refresh</button>
+    </div>
+
+    <div class="project-goal">
+      <div class="goal-header"><span class="goal-name">Practice Vocals</span><span class="goal-stat"><span id="prog-Vocals">0.0</span> / 7 hrs</span></div>
+      <div class="progress-track"><div class="progress-fill" id="bar-Vocals" style="width:0%"></div></div>
+    </div>
+    <div class="project-goal">
+      <div class="goal-header"><span class="goal-name">Sound Design</span><span class="goal-stat"><span id="prog-Sound Design">0.0</span> / 10 hrs</span></div>
+      <div class="progress-track"><div class="progress-fill" id="bar-Sound Design" style="width:0%"></div></div>
+    </div>
+    <div class="project-goal">
+      <div class="goal-header"><span class="goal-name">Songwriting / Production</span><span class="goal-stat"><span id="prog-Songwriting / Production">0.0</span> / 10 hrs</span></div>
+      <div class="progress-track"><div class="progress-fill" id="bar-Songwriting / Production" style="width:0%"></div></div>
+    </div>
+    <div class="project-goal">
+      <div class="goal-header"><span class="goal-name">Busywork</span><span class="goal-stat"><span id="prog-Busywork">0.0</span> / 3.5 hrs</span></div>
+      <div class="progress-track"><div class="progress-fill" id="bar-Busywork" style="width:0%"></div></div>
+    </div>
+    <div class="project-goal">
+      <div class="goal-header"><span class="goal-name">Studying</span><span class="goal-stat"><span id="prog-Studying">0.0</span> / 8 hrs</span></div>
+      <div class="progress-track"><div class="progress-fill" id="bar-Studying" style="width:0%"></div></div>
+    </div>
+    <div class="project-goal">
+      <div class="goal-header"><span class="goal-name">Client Work</span><span class="goal-stat"><span id="prog-Client Work">0.0</span> hrs</span></div>
+      <div class="progress-track"><div class="progress-fill" id="bar-Client Work" style="width:0%"></div></div>
+    </div>
+    <div class="project-goal">
+      <div class="goal-header"><span class="goal-name">Downtime</span><span class="goal-stat"><span id="prog-Downtime">0.0</span> hrs</span></div>
+      <div class="progress-track"><div class="progress-fill" id="bar-Downtime" style="width:0%"></div></div>
+    </div>
+    <div class="project-goal">
+      <div class="goal-header"><span class="goal-name">Gym</span><span class="goal-stat"><span id="prog-Gym">0.0</span> hrs</span></div>
+      <div class="progress-track"><div class="progress-fill" id="bar-Gym" style="width:0%"></div></div>
+    </div>
+    <div class="project-goal">
+      <div class="goal-header"><span class="goal-name">Creative Coding / Sidequests</span><span class="goal-stat"><span id="prog-Creative Coding / Sidequests">0.0</span> hrs</span></div>
+      <div class="progress-track"><div class="progress-fill" id="bar-Creative Coding / Sidequests" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <!-- SESSION LOG -->
+  <div class="card">
+    <div class="section-label">◎ Session Log</div>
+    <div id="logList"><div class="empty-log">no sessions logged yet</div></div>
+  </div>
+
+  <!-- CONFIG -->
+  <div class="card">
+    <div class="config-toggle" onclick="toggleConfig()">
+      <span>⚙ Google Sheets Setup</span>
+      <span id="configArrow">▼</span>
+    </div>
+    <div class="config-body" id="configBody">
+      <div class="config-hint">
+        1. Open your Google Sheet → <code>Extensions → Apps Script</code><br>
+        2. Paste the code from <code>apps-script.js</code> and save<br>
+        3. Click <code>Deploy → New deployment → Web App</code><br>
+        4. Set "Who has access" to <code>Anyone</code><br>
+        5. Copy the deployment URL and paste it below
+      </div>
+      <div class="input-group" style="margin-bottom:14px">
+        <span class="input-label">Apps Script Web App URL</span>
+        <input type="text" class="input-field" id="sheetsUrl" placeholder="https://script.google.com/macros/s/...">
+      </div>
+      <button class="btn btn-log" onclick="saveConfig()">SAVE URL →</button>
+    </div>
+  </div>
+
+</div><!-- /view-track -->
+
+<!-- ══════════════════════════════════════════════════ -->
+<!--  RETRO VIEW                                        -->
+<!-- ══════════════════════════════════════════════════ -->
+<div class="view" id="view-retro">
+
+  <div class="card">
+    <div class="section-label-row">
+      <span class="section-label">◈ Monthly Retrospective</span>
+      <button class="btn btn-sm" onclick="refreshFromSheets(); buildRetro();">↻ Refresh</button>
+    </div>
+
+    <select class="retro-month-select" id="retroMonthSelect" onchange="buildRetro()"></select>
+
+    <!-- Summary stats -->
+    <div class="retro-stat-grid">
+      <div class="retro-stat">
+        <div class="retro-stat-label">Total Hours</div>
+        <div class="retro-stat-value" id="retro-total">0</div>
+        <div class="retro-stat-sub">this month</div>
+      </div>
+      <div class="retro-stat">
+        <div class="retro-stat-label">Daily Avg</div>
+        <div class="retro-stat-value" id="retro-avg">0</div>
+        <div class="retro-stat-sub">hrs / active day</div>
+      </div>
+    </div>
+
+    <!-- Donut chart -->
+    <div class="section-label">% time breakdown</div>
+    <div class="donut-wrap">
+      <svg width="110" height="110" viewBox="0 0 110 110" id="donutSvg"></svg>
+      <div class="donut-legend" id="donutLegend"></div>
+    </div>
+
+    <!-- Per-project breakdown -->
+    <div class="section-label" style="margin-top:4px">hours per project</div>
+    <div id="retroBreakdown"><div class="empty-log">no data for this month</div></div>
+  </div>
+
+</div><!-- /view-retro -->
 
 <div class="toast" id="toast"></div>
 
 <script>
+// ── CONFIG ─────────────────────────────────────────────
 const GOALS = {
   'Vocals': 7,
   'Sound Design': 10,
   'Songwriting / Production': 10,
   'Busywork': 3.5,
   'Studying': 8,
-  'Client Work': null
+  'Client Work': null,
+  'Downtime': null,
+  'Gym': null,
+  'Creative Coding / Sidequests': null
 };
 
-let timerInterval = null;
-let timerSeconds = 0;
-let timerRunning = false;
-let sessions = JSON.parse(localStorage.getItem('trackerSessions') || '[]');
-const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbx_EcstcqWat9faVsaSFu1xYE9GNqRpaj6NgUpG8A7-9nytfhVz6DZsqV8LJCnYPaTu/exec';
+const PALETTE = [
+  '#c8ff00','#ff6b35','#00d4ff','#ff3f8e','#a78bfa',
+  '#fbbf24','#34d399','#f87171','#60a5fa','#e879f9'
+];
 
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwLYKqwloybXrY0JhLI4ys_QZrOVx-B0mXzxl6FD98a3c-6SsNNMwF8DlqkJR3cauXL/exec';
+
+// ── STATE ──────────────────────────────────────────────
+let timerInterval = null;
+let timerSeconds  = 0;
+let timerRunning  = false;
+let sessions = JSON.parse(localStorage.getItem('trackerSessions') || '[]');
+
+// ── INIT ───────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   updateDateLine();
   renderLog();
   updateProgress();
+  populateMonthSelect();
+  buildRetro();
   fetchFromSheets();
   const saved = localStorage.getItem('sheetsUrl') || SHEETS_URL;
   if (saved) document.getElementById('sheetsUrl').value = saved;
@@ -483,7 +617,16 @@ function updateDateLine() {
     `${days[now.getDay()]} ${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
 }
 
-// ── TIMER ──────────────────────────────────────────
+// ── NAVIGATION ─────────────────────────────────────────
+function switchView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (name === 'retro') buildRetro();
+}
+
+// ── TIMER ──────────────────────────────────────────────
 function formatTime(secs) {
   const h = String(Math.floor(secs / 3600)).padStart(2,'0');
   const m = String(Math.floor((secs % 3600) / 60)).padStart(2,'0');
@@ -492,9 +635,7 @@ function formatTime(secs) {
 }
 
 function startTimer() {
-  if (!document.getElementById('timerProject').value) {
-    showToast('Select a project first', true); return;
-  }
+  if (!document.getElementById('timerProject').value) { showToast('Select a project first', true); return; }
   timerRunning = true;
   document.getElementById('timerDisplay').className = 'timer-display running';
   document.getElementById('btnStart').disabled = true;
@@ -544,7 +685,6 @@ function logTimerSession() {
   const project = document.getElementById('timerProject').value;
   if (!project)         { showToast('Select a project', true); return; }
   if (timerSeconds===0) { showToast('No time recorded', true); return; }
-
   const entry = {
     project,
     hours: Math.round(timerSeconds / 36) / 100,
@@ -557,15 +697,15 @@ function logTimerSession() {
   document.getElementById('timerProject').value = '';
 }
 
-// ── MANUAL ENTRY ───────────────────────────────────
+// ── MANUAL ENTRY ───────────────────────────────────────
 function logManualSession() {
   const project = document.getElementById('manualProject').value;
-  const hrs  = parseFloat(document.getElementById('manualHours').value)  || 0;
-  const mins = parseInt(document.getElementById('manualMinutes').value)   || 0;
+  const hrs   = parseFloat(document.getElementById('manualHours').value)  || 0;
+  const mins  = parseInt(document.getElementById('manualMinutes').value)   || 0;
   const notes = document.getElementById('manualNotes').value.trim();
 
-  if (!project)             { showToast('Select a project', true); return; }
-  if (hrs===0 && mins===0)  { showToast('Enter time spent', true); return; }
+  if (!project)            { showToast('Select a project', true); return; }
+  if (hrs===0 && mins===0) { showToast('Enter time spent', true); return; }
 
   const totalHours = hrs + mins/60;
   const totalSecs  = Math.round(totalHours * 3600);
@@ -583,12 +723,13 @@ function logManualSession() {
   document.getElementById('manualNotes').value    = '';
 }
 
-// ── SAVE & SYNC ────────────────────────────────────
+// ── SAVE & SYNC ────────────────────────────────────────
 function saveSession(entry) {
   sessions.unshift(entry);
   localStorage.setItem('trackerSessions', JSON.stringify(sessions));
   renderLog();
   updateProgress();
+  buildRetro();
   sendToSheets(entry);
   showToast('Session logged ✓');
 }
@@ -604,25 +745,22 @@ function fetchFromSheets(force = false) {
 
   const callbackName = 'trackerCallback_' + Date.now();
   const script = document.createElement('script');
-  const fullUrl = `${url}?action=read&callback=${callbackName}`;
-  console.log('Fetching from:', fullUrl);
-  script.src = fullUrl;
+  script.src = `${url}?action=read&callback=${callbackName}`;
 
   const timeout = setTimeout(() => {
     cleanup();
-    console.warn('Sheet read timed out — callback never fired');
     if (force) showToast('Sync failed', true);
   }, 10000);
 
   window[callbackName] = function(data) {
-    console.log('JSONP callback fired, data:', JSON.stringify(data).slice(0, 300));
     cleanup();
     if (data.sessions !== undefined) {
       sessions = data.sessions.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-      console.log('Sessions loaded:', sessions.length, 'first:', JSON.stringify(sessions[0]));
       localStorage.setItem('trackerSessions', JSON.stringify(sessions));
       renderLog();
       updateProgress();
+      populateMonthSelect();
+      buildRetro();
       if (force) showToast('Synced ✓');
     }
   };
@@ -633,18 +771,13 @@ function fetchFromSheets(force = false) {
     if (script.parentNode) script.parentNode.removeChild(script);
   }
 
-  script.onerror = (err) => {
-    console.error('Script load error:', err);
-    cleanup();
-    if (force) showToast('Sync failed', true);
-  };
+  script.onerror = () => { cleanup(); if (force) showToast('Sync failed', true); };
   document.head.appendChild(script);
 }
 
 function sendToSheets(entry) {
   const url = localStorage.getItem('sheetsUrl') || SHEETS_URL;
   if (!url) return;
-
   const params = new URLSearchParams({
     date:     new Date(entry.timestamp).toLocaleDateString(),
     time:     new Date(entry.timestamp).toLocaleTimeString(),
@@ -653,13 +786,10 @@ function sendToSheets(entry) {
     duration: entry.durationLabel,
     notes:    entry.notes || ''
   });
-
-  // Use GET with URL params — works on all browsers including strict mobile
-  fetch(`${url}?${params.toString()}`)
-    .catch(e => console.warn('Sheets sync failed:', e));
+  fetch(`${url}?${params.toString()}`).catch(() => {});
 }
 
-// ── PROGRESS ───────────────────────────────────────
+// ── WEEKLY PROGRESS ────────────────────────────────────
 function getWeekStart() {
   const now = new Date();
   const day  = now.getDay();
@@ -686,12 +816,12 @@ function updateProgress() {
   });
 }
 
-// ── LOG ────────────────────────────────────────────
+// ── SESSION LOG ────────────────────────────────────────
 function renderLog() {
   const list = document.getElementById('logList');
   if (!sessions.length) { list.innerHTML = '<div class="empty-log">no sessions logged yet</div>'; return; }
   list.innerHTML = sessions.slice(0,20).map(s => {
-    const d = new Date(s.timestamp);
+    const d  = new Date(s.timestamp);
     const ts = d.toLocaleDateString([],{month:'short',day:'numeric'}) + ' · ' +
                d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
     return `<div class="log-entry">
@@ -705,7 +835,129 @@ function renderLog() {
   }).join('');
 }
 
-// ── CONFIG ─────────────────────────────────────────
+// ── MONTHLY RETRO ──────────────────────────────────────
+function populateMonthSelect() {
+  const sel = document.getElementById('retroMonthSelect');
+  const current = sel.value;
+  const months = new Set();
+  sessions.forEach(s => {
+    const d = new Date(s.timestamp);
+    months.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
+  });
+  // Always include current month
+  const now = new Date();
+  months.add(`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`);
+
+  const sorted = Array.from(months).sort().reverse();
+  const monthNames = ['January','February','March','April','May','June',
+                      'July','August','September','October','November','December'];
+  sel.innerHTML = sorted.map(m => {
+    const [y, mo] = m.split('-');
+    return `<option value="${m}" ${m===current?'selected':''}>${monthNames[parseInt(mo)-1]} ${y}</option>`;
+  }).join('');
+}
+
+function buildRetro() {
+  const sel = document.getElementById('retroMonthSelect');
+  if (!sel) return;
+  const val = sel.value;
+  if (!val) return;
+  const [year, month] = val.split('-').map(Number);
+
+  // Filter sessions to selected month
+  const monthSessions = sessions.filter(s => {
+    const d = new Date(s.timestamp);
+    return d.getFullYear() === year && d.getMonth()+1 === month;
+  });
+
+  // Total hours
+  const totalHours = monthSessions.reduce((sum, s) => sum + s.hours, 0);
+
+  // Active days
+  const activeDays = new Set(monthSessions.map(s => new Date(s.timestamp).toDateString())).size;
+  const avgHours = activeDays > 0 ? totalHours / activeDays : 0;
+
+  document.getElementById('retro-total').textContent = totalHours.toFixed(1);
+  document.getElementById('retro-avg').textContent   = avgHours.toFixed(1);
+
+  // Per-project totals
+  const byProject = {};
+  Object.keys(GOALS).forEach(p => byProject[p] = 0);
+  monthSessions.forEach(s => {
+    if (byProject.hasOwnProperty(s.project)) byProject[s.project] += s.hours;
+  });
+
+  // Sort by hours desc, filter to only projects with time logged
+  const sorted = Object.entries(byProject)
+    .filter(([,h]) => h > 0)
+    .sort(([,a],[,b]) => b - a);
+
+  const maxHours = sorted.length ? sorted[0][1] : 1;
+
+  // Breakdown rows
+  const breakdown = document.getElementById('retroBreakdown');
+  if (!sorted.length) {
+    breakdown.innerHTML = '<div class="empty-log">no data for this month</div>';
+    document.getElementById('donutSvg').innerHTML = '';
+    document.getElementById('donutLegend').innerHTML = '';
+    return;
+  }
+
+  breakdown.innerHTML = sorted.map(([project, hours]) => {
+    const pct = totalHours > 0 ? (hours / totalHours * 100) : 0;
+    const bar = hours / maxHours * 100;
+    return `<div class="retro-project-row">
+      <span class="retro-proj-name">${project}</span>
+      <div class="retro-proj-bar-wrap"><div class="retro-proj-bar" style="width:${bar}%"></div></div>
+      <span class="retro-proj-hrs">${hours.toFixed(1)}h</span>
+      <span class="retro-proj-pct">${pct.toFixed(0)}%</span>
+    </div>`;
+  }).join('');
+
+  // Donut chart
+  drawDonut(sorted, totalHours);
+}
+
+function drawDonut(data, total) {
+  const svg    = document.getElementById('donutSvg');
+  const legend = document.getElementById('donutLegend');
+  const cx = 55, cy = 55, r = 38, stroke = 18;
+  const circumference = 2 * Math.PI * r;
+
+  let offset = 0;
+  let paths  = '';
+  let legendHTML = '';
+
+  data.forEach(([project, hours], i) => {
+    const pct   = hours / total;
+    const dash  = pct * circumference;
+    const gap   = circumference - dash;
+    const color = PALETTE[i % PALETTE.length];
+    const rotate = (offset * 360) - 90;
+
+    paths += `<circle
+      cx="${cx}" cy="${cy}" r="${r}"
+      fill="none"
+      stroke="${color}"
+      stroke-width="${stroke}"
+      stroke-dasharray="${dash} ${gap}"
+      stroke-dashoffset="0"
+      transform="rotate(${rotate} ${cx} ${cy})"
+    />`;
+
+    legendHTML += `<div class="legend-item">
+      <div class="legend-dot" style="background:${color}"></div>
+      <span style="color:#aaa">${project}</span>
+    </div>`;
+
+    offset += pct;
+  });
+
+  svg.innerHTML = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#2a2a2a" stroke-width="${stroke}"/>` + paths;
+  legend.innerHTML = legendHTML;
+}
+
+// ── CONFIG ─────────────────────────────────────────────
 function toggleConfig() {
   const b = document.getElementById('configBody');
   const a = document.getElementById('configArrow');
@@ -720,7 +972,7 @@ function saveConfig() {
   showToast('URL saved ✓');
 }
 
-// ── TOAST ──────────────────────────────────────────
+// ── TOAST ──────────────────────────────────────────────
 function showToast(msg, isError=false) {
   const t = document.getElementById('toast');
   t.textContent = msg;
