@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Lift Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0b;--surface:#131316;--surface2:#1a1a1f;--surface3:#222228;
+  --border:#2a2a32;--text:#e8e6e3;--text2:#9a9898;--text3:#5a5a5e;
+  --accent:#ff4d00;--accent2:#ff6a2a;--accent-dim:rgba(255,77,0,.12);
+  --green:#22c55e;--green-dim:rgba(34,197,94,.12);
+  --blue:#3b82f6;--blue-dim:rgba(59,130,246,.12);
+  --yellow:#eab308;--yellow-dim:rgba(234,179,8,.12);
+  --red:#ef4444;--radius:10px;--radius-sm:6px;
+}
+html{font-size:15px}
+body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select{font-family:inherit;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;font-size:.9rem;outline:none;width:100%}
+input:focus,select:focus{border-color:var(--accent)}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239a9898' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+
+/* Layout */
+.app{max-width:480px;margin:0 auto;padding:0 12px 100px}
+header{display:flex;align-items:center;justify-content:space-between;padding:16px 0 12px;border-bottom:1px solid var(--border);margin-bottom:16px;position:sticky;top:0;background:var(--bg);z-index:100}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:2px;color:var(--accent)}
+.logo span{color:var(--text)}
+.header-actions{display:flex;gap:8px}
+.icon-btn{width:38px;height:38px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;background:var(--surface);border:1px solid var(--border);transition:all .15s}
+.icon-btn:hover,.icon-btn.active{background:var(--accent-dim);border-color:var(--accent)}
+.icon-btn svg{width:18px;height:18px;stroke:var(--text2)}
+.icon-btn:hover svg,.icon-btn.active svg{stroke:var(--accent)}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--surface);border-radius:var(--radius);padding:3px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab{padding:8px 14px;border-radius:7px;font-size:.78rem;font-weight:600;white-space:nowrap;transition:all .15s;color:var(--text2)}
+.tab.active{background:var(--accent);color:#fff}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.card-title{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:1px;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.card-title .dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+
+/* Section Builder */
+.section-header{font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:1.5px;color:var(--accent);margin:18px 0 8px;display:flex;align-items:center;gap:6px}
+.section-header::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* Exercise Selector */
+.exercise-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
+.ex-chip{padding:8px 10px;border-radius:var(--radius-sm);font-size:.78rem;font-weight:600;background:var(--surface2);border:1px solid var(--border);transition:all .15s;text-align:left}
+.ex-chip:hover{border-color:var(--text3)}
+.ex-chip.selected{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+
+/* Set Row */
+.set-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border)}
+.set-row:last-child{border-bottom:none}
+.set-check{width:26px;height:26px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.set-check.done{background:var(--green);border-color:var(--green)}
+.set-check.done svg{opacity:1}
+.set-check svg{width:14px;height:14px;stroke:#fff;opacity:0;transition:opacity .15s}
+.set-info{flex:1;min-width:0}
+.set-label{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--text3);margin-bottom:2px}
+.set-inputs{display:flex;gap:6px;align-items:center}
+.set-inputs input{width:70px;padding:6px 8px;font-family:'JetBrains Mono',monospace;font-size:.85rem;text-align:center}
+.set-inputs .unit{font-size:.7rem;color:var(--text3);white-space:nowrap}
+.prev-info{font-size:.68rem;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.prev-info span{color:var(--yellow)}
+
+/* Timer */
+.timer-bar{position:fixed;bottom:0;left:0;right:0;z-index:200}
+.timer-inner{max-width:480px;margin:0 auto;background:var(--surface);border-top:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:12px}
+.timer-display{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:1px;min-width:80px;text-align:center}
+.timer-display.warning{color:var(--yellow)}
+.timer-display.ready{color:var(--green)}
+.timer-progress{flex:1;height:4px;background:var(--surface3);border-radius:2px;overflow:hidden}
+.timer-progress-fill{height:100%;background:var(--accent);transition:width .25s linear;border-radius:2px}
+.timer-controls{display:flex;gap:6px}
+.timer-btn{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--surface2);border:1px solid var(--border)}
+.timer-btn.primary{background:var(--accent);border-color:var(--accent)}
+.timer-btn svg{width:16px;height:16px;stroke:#fff}
+.timer-type-toggle{font-size:.7rem;font-weight:600;color:var(--text3);padding:4px 8px;border-radius:4px;background:var(--surface2)}
+.timer-type-toggle.active{color:var(--accent);background:var(--accent-dim)}
+
+/* Plate Math Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.modal{background:var(--surface);border-radius:var(--radius) var(--radius) 0 0;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;padding:20px 16px 32px}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:1px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.plate-visual{display:flex;align-items:center;justify-content:center;gap:2px;margin:20px 0;min-height:100px}
+.plate{display:flex;align-items:center;justify-content:center;border-radius:4px;font-family:'JetBrains Mono',monospace;font-weight:600;color:#fff;font-size:.65rem;writing-mode:vertical-lr;text-orientation:mixed}
+.bar-end{width:60px;height:12px;background:#666;border-radius:2px}
+.bar-collar{width:8px;height:22px;background:#888;border-radius:1px}
+
+/* Sync */
+.sync-status{font-size:.68rem;color:var(--text3);display:flex;align-items:center;gap:4px}
+.sync-dot{width:6px;height:6px;border-radius:50%}
+.sync-dot.connected{background:var(--green)}
+.sync-dot.disconnected{background:var(--red)}
+
+/* History */
+.history-item{padding:12px;border-bottom:1px solid var(--border)}
+.history-date{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--accent);margin-bottom:4px}
+.history-exercise{font-weight:600;font-size:.9rem;margin-bottom:2px}
+.history-detail{font-size:.78rem;color:var(--text2)}
+
+/* Btn */
+.btn{padding:10px 20px;border-radius:var(--radius-sm);font-weight:600;font-size:.85rem;transition:all .15s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent2)}
+.btn-secondary{background:var(--surface2);border:1px solid var(--border);color:var(--text)}
+.btn-sm{padding:6px 12px;font-size:.78rem}
+.btn-block{width:100%;display:block}
+
+/* Settings */
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+.setting-label{font-size:.85rem;font-weight:500}
+.setting-desc{font-size:.72rem;color:var(--text3);margin-top:2px}
+
+/* Volume badge */
+.volume-badge{font-family:'JetBrains Mono',monospace;font-size:.72rem;background:var(--accent-dim);color:var(--accent);padding:3px 8px;border-radius:4px;margin-left:auto}
+
+/* Fade in */
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.fade-up{animation:fadeUp .3s ease both}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{animation:spin .8s linear infinite;display:inline-block}
+
+/* Sync button */
+.btn-sync{background:var(--blue-dim);border:1px solid var(--blue);color:var(--blue);display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--radius-sm);font-weight:600;font-size:.78rem;cursor:pointer}
+.btn-sync:hover{background:var(--blue);color:#fff}
+.btn-sync svg{width:14px;height:14px;stroke:currentColor}
+.btn-sync.syncing{opacity:.6;pointer-events:none}
+
+/* Hidden */
+.hidden{display:none!important}
+
+/* Toast */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--border);padding:10px 18px;border-radius:var(--radius);font-size:.82rem;font-weight:600;z-index:400;animation:fadeUp .3s ease;pointer-events:none}
+.toast.success{border-color:var(--green);color:var(--green)}
+.toast.error{border-color:var(--red);color:var(--red)}
+
+/* Number input hide spinners */
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// ============================
+// DATA & STATE
+// ============================
+const EXERCISES = {
+  barbell: [
+    {id:'bb_bench',name:'Chest Press',type:'barbell'},
+    {id:'bb_ohp',name:'Overhead Press',type:'barbell'},
+    {id:'bb_bsquat',name:'Back Squat',type:'barbell'},
+    {id:'bb_fsquat',name:'Front Squat',type:'barbell'},
+    {id:'bb_dead',name:'Deadlift',type:'barbell'},
+    {id:'bb_clean',name:'Clean',type:'barbell'},
+    {id:'bb_row',name:'Row',type:'barbell'},
+  ],
+  bodyweight: [
+    {id:'bw_pushup',name:'Pushups',type:'bodyweight',noWeight:true},
+    {id:'bw_pullup',name:'Pull-ups',type:'bodyweight',noWeight:true},
+    {id:'bw_chinup',name:'Chin-ups',type:'bodyweight',optionalWeight:true},
+    {id:'bw_dip',name:'Dips',type:'bodyweight',optionalWeight:true},
+    {id:'bw_t2b',name:'Toes to Bar',type:'bodyweight',noWeight:true},
+  ],
+  dumbbell: [
+    {id:'db_press',name:'Shoulder Press',type:'dumbbell'},
+    {id:'db_row',name:'Row',type:'dumbbell'},
+    {id:'db_curl',name:'Curl',type:'dumbbell'},
+    {id:'db_tri',name:'Tricep Overhead',type:'dumbbell'},
+    {id:'db_split',name:'Split Squat',type:'dumbbell'},
+    {id:'db_lunge',name:'Lunges',type:'dumbbell'},
+    {id:'db_rdl',name:'Romanian Deadlift',type:'dumbbell'},
+    {id:'db_goblet',name:'Goblet Squat',type:'dumbbell'},
+  ],
+  machine: [
+    {id:'mc_legext',name:'Leg Extension',type:'machine'},
+    {id:'mc_triext',name:'Tricep Extension',type:'machine'},
+    {id:'mc_latpull',name:'Lat Pull Down',type:'machine'},
+    {id:'mc_seatrow',name:'Seated Row',type:'machine'},
+  ],
+  cardio: [
+    {id:'cd_burpee',name:'Burpees',type:'cardio',noWeight:true,isCardio:true},
+    {id:'cd_g2oh',name:'KB/DB Ground to OH',type:'cardio',isCardio:true},
+    {id:'cd_row',name:'Rowing',type:'cardio',noWeight:true,isCardio:true,timedOnly:true},
+    {id:'cd_bike',name:'Assault/Echo Bike',type:'cardio',noWeight:true,isCardio:true,timedOnly:true},
+  ],
+};
+
+const ALL_EXERCISES = Object.values(EXERCISES).flat();
+const getExercise = id => ALL_EXERCISES.find(e=>e.id===id);
+
+const PLATES = [45,35,25,10,5,2.5];
+const PLATE_COLORS = {45:'#ef4444',35:'#3b82f6',25:'#22c55e',10:'#eab308',5:'#8b5cf6',2.5:'#ec4899'};
+const PLATE_HEIGHTS = {45:80,35:70,25:60,10:48,5:40,2.5:32};
+const BAR_WEIGHT = 45;
+
+let state = {
+  view: 'workout', // workout | history | settings
+  workout: null, // current workout session
+  building: true, // in build mode
+  selectedExercises: {primary:[],accessory:[],cardio:[]},
+  history: JSON.parse(localStorage.getItem('ironlog_history')||'[]'),
+  sheetConnected: false,
+  syncing: false,
+  restDuration: parseInt(localStorage.getItem('ironlog_restDuration')||'120'),
+  timer: {running:false,seconds:0,total:120,type:'rest',interval:null,worker:null},
+  plateMathWeight: 135,
+  showPlateModal: false,
+  showSettingsSheet: false,
+  toast: null,
+};
+
+// ============================
+// GOOGLE SHEETS INTEGRATION
+// ============================
+const SHEET_API_BASE = 'https://sheets.googleapis.com/v4/spreadsheets';
+
+// For 2-way sync we use a Google Apps Script web app as middleware
+// The user deploys a simple Apps Script that handles read/write
+// For now we use localStorage + optional sheet export/import
+
+async function syncToSheet(workoutData) {
+  const scriptUrl = localStorage.getItem('ironlog_scriptUrl');
+  if (!scriptUrl) return;
+  try {
+    await fetch(scriptUrl, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({action:'append', data: workoutData})
+    });
+    state.sheetConnected = true;
+    showToast('Synced to Sheet', 'success');
+  } catch(e) {
+    state.sheetConnected = false;
+    console.error('Sheet sync error:', e);
+  }
+}
+
+async function syncAllHistory() {
+  const scriptUrl = localStorage.getItem('ironlog_scriptUrl');
+  if (!scriptUrl) { showToast('Configure Sheet URL in Settings first', 'error'); return; }
+  state.syncing = true;
+  render();
+  try {
+    for (const record of state.history) {
+      await fetch(scriptUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({action:'append', data: record})
+      });
+    }
+    state.sheetConnected = true;
+    state.syncing = false;
+    showToast(`Synced ${state.history.length} workout(s) to Sheet`, 'success');
+  } catch(e) {
+    state.sheetConnected = false;
+    state.syncing = false;
+    showToast('Sync failed — check Settings', 'error');
+  }
+  render();
+}
+
+async function fetchFromSheet() {
+  const scriptUrl = localStorage.getItem('ironlog_scriptUrl');
+  if (!scriptUrl) return null;
+  try {
+    const res = await fetch(scriptUrl + '?action=read');
+    const data = await res.json();
+    state.sheetConnected = true;
+    return data;
+  } catch(e) {
+    state.sheetConnected = false;
+    return null;
+  }
+}
+
+// ============================
+// TIMER (using Web Worker for background)
+// ============================
+// Audio ding for timer completion
+let audioCtx = null;
+function playDing() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // Play two-tone ding
+    [880, 1108.73].forEach((freq, i) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime + i * 0.15);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.15 + 0.6);
+      osc.start(audioCtx.currentTime + i * 0.15);
+      osc.stop(audioCtx.currentTime + i * 0.15 + 0.6);
+    });
+  } catch(e) { console.warn('Audio ding failed:', e); }
+}
+
+function createTimerWorker() {
+  const blob = new Blob([`
+    let interval = null;
+    let seconds = 0;
+    let total = 120;
+    self.onmessage = function(e) {
+      const {cmd, value} = e.data;
+      if (cmd === 'start') {
+        seconds = value.seconds;
+        total = value.total;
+        clearInterval(interval);
+        interval = setInterval(() => {
+          seconds++;
+          self.postMessage({seconds, total});
+          if (total > 0 && seconds >= total) {
+            clearInterval(interval);
+            self.postMessage({seconds, total, done: true});
+          }
+        }, 1000);
+      } else if (cmd === 'stop') {
+        clearInterval(interval);
+      } else if (cmd === 'reset') {
+        clearInterval(interval);
+        seconds = 0;
+        self.postMessage({seconds: 0, total});
+      }
+    };
+  `], {type:'application/javascript'});
+  return new Worker(URL.createObjectURL(blob));
+}
+
+// Targeted timer DOM update — avoids full re-render blink
+function updateTimerDOM() {
+  const t = state.timer;
+  const fmtTime = (s) => {
+    const m = Math.floor(s/60);
+    const sec = s % 60;
+    return `${m}:${String(sec).padStart(2,'0')}`;
+  };
+  const isCountUp = t.type === 'cardio';
+  const display = isCountUp ? fmtTime(t.seconds) : fmtTime(Math.max(0, t.total - t.seconds));
+  const pct = isCountUp ? 0 : Math.min(100, (t.seconds / t.total) * 100);
+  const remaining = t.total - t.seconds;
+  const timerClass = 'timer-display' + (!t.running ? '' : remaining <= 0 ? ' ready' : remaining <= 10 ? ' warning' : '');
+
+  const displayEl = document.querySelector('.timer-display');
+  const fillEl = document.querySelector('.timer-progress-fill');
+  if (displayEl) {
+    displayEl.textContent = display;
+    displayEl.className = timerClass;
+  }
+  if (fillEl) fillEl.style.width = pct + '%';
+}
+
+function startTimer(type='rest', duration=null) {
+  if (state.timer.worker) state.timer.worker.terminate();
+  const total = duration || (type==='rest' ? state.restDuration : 0);
+  const worker = createTimerWorker();
+  worker.onmessage = (e) => {
+    state.timer.seconds = e.data.seconds;
+    state.timer.total = e.data.total;
+    if (e.data.done && type === 'rest') {
+      playDing();
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('Lift Tracker', {body:'Rest complete — get after it!'});
+      }
+      try { navigator.vibrate?.([200,100,200]); } catch(e){}
+      // Full re-render only on completion to update button state
+      render();
+      return;
+    }
+    // Targeted update — no full DOM rebuild
+    updateTimerDOM();
+  };
+  worker.postMessage({cmd:'start', value:{seconds:0, total}});
+  state.timer = {running:true, seconds:0, total, type, interval:null, worker};
+  render();
+}
+
+function stopTimer() {
+  if (state.timer.worker) state.timer.worker.terminate();
+  state.timer.running = false;
+  state.timer.worker = null;
+  render();
+}
+
+function resetTimer() {
+  stopTimer();
+  state.timer.seconds = 0;
+  render();
+}
+
+// Request notification permission
+if ('Notification' in window && Notification.permission === 'default') {
+  Notification.requestPermission();
+}
+
+// ============================
+// PLATE MATH
+// ============================
+function calcPlates(targetWeight) {
+  let perSide = (targetWeight - BAR_WEIGHT) / 2;
+  if (perSide <= 0) return [];
+  const plates = [];
+  for (const p of PLATES) {
+    while (perSide >= p) {
+      plates.push(p);
+      perSide -= p;
+    }
+  }
+  return plates;
+}
+
+// ============================
+// HISTORY & PREVIOUS SESSION
+// ============================
+function getPreviousSession(exerciseId) {
+  for (let i = state.history.length - 1; i >= 0; i--) {
+    const w = state.history[i];
+    if (w.exercises) {
+      for (const ex of w.exercises) {
+        if (ex.exerciseId === exerciseId && ex.sets?.length > 0) {
+          return ex;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+function suggestWeight(exerciseId) {
+  const prev = getPreviousSession(exerciseId);
+  if (!prev || !prev.sets?.length) return null;
+  // Simple progressive overload: if they hit target reps, suggest +5/+10lbs
+  const lastSet = prev.sets[prev.sets.length - 1];
+  const avgReps = prev.sets.reduce((s,x)=>s+(x.reps||0),0) / prev.sets.length;
+  if (avgReps >= 8) return (lastSet.weight || 0) + 5;
+  return lastSet.weight || null;
+}
+
+// ============================
+// SAVE WORKOUT
+// ============================
+function saveWorkout() {
+  if (!state.workout) return;
+  const record = {
+    date: new Date().toISOString(),
+    exercises: state.workout.exercises.map(ex => ({
+      exerciseId: ex.id,
+      name: ex.name,
+      type: ex.type,
+      sets: ex.sets.map(s => ({
+        weight: s.weight || 0,
+        reps: s.reps || 0,
+        done: s.done || false,
+        duration: s.duration || 0,
+      })),
+      totalVolume: ex.sets.reduce((sum,s) => sum + (s.weight||0)*(s.reps||0), 0),
+    }))
+  };
+  state.history.push(record);
+  localStorage.setItem('ironlog_history', JSON.stringify(state.history));
+  syncToSheet(record);
+  showToast('Workout saved!', 'success');
+  state.workout = null;
+  state.building = true;
+  state.selectedExercises = {primary:[],accessory:[],cardio:[]};
+  render();
+}
+
+// ============================
+// TOAST
+// ============================
+function showToast(msg, type='success') {
+  state.toast = {msg, type};
+  render();
+  setTimeout(()=>{state.toast=null;render()}, 2500);
+}
+
+// ============================
+// RENDER ENGINE
+// ============================
+function render() {
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    ${renderHeader()}
+    <div class="app">
+      ${state.view === 'workout' ? renderWorkout() : ''}
+      ${state.view === 'history' ? renderHistory() : ''}
+      ${state.view === 'settings' ? renderSettings() : ''}
+    </div>
+    ${renderTimerBar()}
+    ${state.showPlateModal ? renderPlateModal() : ''}
+    ${state.toast ? `<div class="toast ${state.toast.type}">${state.toast.msg}</div>` : ''}
+  `;
+  bindEvents();
+}
+
+function renderHeader() {
+  return `<div class="app"><header>
+    <div class="logo">LIFT<span>TRACKER</span></div>
+    <div class="header-actions">
+      <div class="sync-status">
+        <div class="sync-dot ${state.sheetConnected?'connected':'disconnected'}"></div>
+        ${state.sheetConnected?'Synced':'Local'}
+      </div>
+      <button class="icon-btn ${state.view==='workout'?'active':''}" data-view="workout">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M6.5 6.5h11M6.5 12h11M6.5 17.5h11"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+      </button>
+      <button class="icon-btn ${state.view==='history'?'active':''}" data-view="history">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      </button>
+      <button class="icon-btn ${state.view==='settings'?'active':''}" data-view="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </div>
+  </header></div>`;
+}
+
+function renderWorkout() {
+  if (state.building) return renderBuilder();
+  return renderActiveWorkout();
+}
+
+// ============================
+// WORKOUT BUILDER
+// ============================
+function renderBuilder() {
+  const sel = state.selectedExercises;
+  return `
+    <div class="card fade-up">
+      <div class="card-title"><div class="dot"></div>BUILD YOUR WORKOUT</div>
+
+      <div class="section-header">SECTION 1 — PRIMARY LIFTS (2-3)</div>
+      <div class="exercise-grid">
+        ${[...EXERCISES.barbell].map(ex => `
+          <button class="ex-chip ${sel.primary.includes(ex.id)?'selected':''}" data-section="primary" data-id="${ex.id}">
+            ${ex.name}
+          </button>
+        `).join('')}
+      </div>
+
+      <div class="section-header">SECTION 2 — ACCESSORIES (3-4)</div>
+      <div class="exercise-grid">
+        ${[...EXERCISES.bodyweight,...EXERCISES.dumbbell,...EXERCISES.machine].map(ex => `
+          <button class="ex-chip ${sel.accessory.includes(ex.id)?'selected':''}" data-section="accessory" data-id="${ex.id}">
+            <span style="font-size:.6rem;color:var(--text3);display:block;margin-bottom:1px">${ex.type.toUpperCase()}</span>
+            ${ex.name}
+          </button>
+        `).join('')}
+      </div>
+
+      <div class="section-header">SECTION 3 — CARDIO</div>
+      <div class="exercise-grid">
+        ${EXERCISES.cardio.map(ex => `
+          <button class="ex-chip ${sel.cardio.includes(ex.id)?'selected':''}" data-section="cardio" data-id="${ex.id}">
+            ${ex.name}
+          </button>
+        `).join('')}
+      </div>
+
+      <button class="btn btn-primary btn-block" style="margin-top:16px" id="startWorkout" ${
+        (sel.primary.length<1)?'disabled style="margin-top:16px;opacity:.4;pointer-events:none"':''
+      }>
+        START WORKOUT (${sel.primary.length + sel.accessory.length + sel.cardio.length} exercises)
+      </button>
+    </div>
+  `;
+}
+
+// ============================
+// ACTIVE WORKOUT
+// ============================
+function renderActiveWorkout() {
+  const w = state.workout;
+  if (!w) return '';
+  let totalVol = 0;
+  w.exercises.forEach(ex => {
+    ex.sets.forEach(s => { if(s.done) totalVol += (s.weight||0)*(s.reps||0); });
+  });
+
+  return `
+    <div class="fade-up">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1px;color:var(--text2)">
+          ACTIVE SESSION
+        </div>
+        <div class="volume-badge">VOL: ${totalVol.toLocaleString()} lbs</div>
+      </div>
+
+      ${w.exercises.map((ex, ei) => renderExerciseCard(ex, ei)).join('')}
+
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <button class="btn btn-primary" style="flex:1" id="finishWorkout">FINISH & SAVE</button>
+        <button class="btn btn-secondary" id="cancelWorkout">CANCEL</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderExerciseCard(ex, ei) {
+  const exDef = getExercise(ex.id);
+  const prev = getPreviousSession(ex.id);
+  const suggested = suggestWeight(ex.id);
+  const isTimedCardio = exDef?.timedOnly;
+  const showWeight = !exDef?.noWeight || exDef?.optionalWeight;
+
+  let exVol = 0;
+  ex.sets.forEach(s => { if(s.done) exVol += (s.weight||0)*(s.reps||0); });
+
+  return `
+    <div class="card">
+      <div class="card-title">
+        <div class="dot" style="background:${ex.section==='primary'?'var(--accent)':ex.section==='accessory'?'var(--blue)':'var(--green)'}"></div>
+        ${ex.name}
+        ${!isTimedCardio && exVol > 0 ? `<div class="volume-badge">${exVol.toLocaleString()}</div>` : ''}
+        ${exDef?.type==='barbell' ? `<button class="icon-btn" style="width:28px;height:28px;margin-left:4px" data-platemath="${ei}"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" style="width:14px;height:14px"><rect x="2" y="6" width="4" height="12" rx="1"/><rect x="18" y="6" width="4" height="12" rx="1"/><line x1="6" y1="12" x2="18" y2="12"/></svg></button>` : ''}
+      </div>
+
+      ${prev ? `<div class="prev-info">Previous: <span>${prev.sets.map(s=>isTimedCardio?`${s.duration||0}s`:`${s.weight||0}×${s.reps||0}`).join(', ')}</span></div>` : '<div class="prev-info">No previous data</div>'}
+
+      ${ex.sets.map((set, si) => `
+        <div class="set-row">
+          <button class="set-check ${set.done?'done':''}" data-ei="${ei}" data-si="${si}">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
+          </button>
+          <div class="set-info">
+            <div class="set-label">SET ${si+1}</div>
+            <div class="set-inputs">
+              ${isTimedCardio ? `
+                <input type="number" placeholder="sec" value="${set.duration||''}" data-field="duration" data-ei="${ei}" data-si="${si}" inputmode="numeric">
+                <span class="unit">sec</span>
+              ` : `
+                ${showWeight ? `
+                  <input type="number" placeholder="${suggested||'lbs'}" value="${set.weight||''}" data-field="weight" data-ei="${ei}" data-si="${si}" inputmode="decimal">
+                  <span class="unit">lbs</span>
+                ` : ''}
+                <input type="number" placeholder="reps" value="${set.reps||''}" data-field="reps" data-ei="${ei}" data-si="${si}" inputmode="numeric">
+                <span class="unit">reps</span>
+              `}
+            </div>
+            ${!isTimedCardio && suggested && !set.weight ? `<div class="prev-info">Suggested: <span>${suggested} lbs</span></div>` : ''}
+          </div>
+        </div>
+      `).join('')}
+
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button class="btn btn-secondary btn-sm" data-addset="${ei}">+ Set</button>
+        ${ex.sets.length > 1 ? `<button class="btn btn-secondary btn-sm" data-removeset="${ei}">− Set</button>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+// ============================
+// HISTORY VIEW
+// ============================
+function renderHistory() {
+  if (state.history.length === 0) {
+    return `<div class="card fade-up"><div class="card-title">NO HISTORY YET</div><p style="color:var(--text2);font-size:.85rem">Complete a workout to see your history here.</p></div>`;
+  }
+  return `<div class="fade-up">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1px;color:var(--text2)">WORKOUT HISTORY</div>
+      <button class="btn-sync ${state.syncing?'syncing':''}" id="syncAll">
+        <span class="${state.syncing?'spin':''}"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg></span>
+        ${state.syncing?'Syncing...':'Sync to Sheet'}
+      </button>
+    </div>
+    ${state.history.slice().reverse().map(w => `
+      <div class="card">
+        <div class="history-date">${new Date(w.date).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</div>
+        ${w.exercises.map(ex => `
+          <div class="history-item">
+            <div class="history-exercise">${ex.name}</div>
+            <div class="history-detail">
+              ${ex.sets.map(s => s.duration ? `${s.duration}s` : `${s.weight||0}×${s.reps||0}`).join(' → ')}
+              ${ex.totalVolume ? ` · Vol: ${ex.totalVolume.toLocaleString()} lbs` : ''}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+// ============================
+// SETTINGS VIEW
+// ============================
+function renderSettings() {
+  return `<div class="fade-up">
+    <div class="card">
+      <div class="card-title"><div class="dot"></div>GOOGLE SHEETS SYNC</div>
+      <p style="font-size:.78rem;color:var(--text2);margin-bottom:12px">
+        Deploy the Apps Script to your Google Sheet, then paste the Web App URL here. The script is attached to your sheet so no separate ID is needed.
+      </p>
+      <input type="text" id="scriptUrl" placeholder="Apps Script Web App URL" value="${localStorage.getItem('ironlog_scriptUrl')||''}" style="margin-bottom:8px">
+      <button class="btn btn-primary btn-sm" id="saveSheetConfig">Save</button>
+
+      <details style="margin-top:16px">
+        <summary style="font-size:.78rem;color:var(--accent);cursor:pointer;font-weight:600">📋 Apps Script Setup Instructions</summary>
+        <div style="font-size:.72rem;color:var(--text2);margin-top:8px;line-height:1.6">
+          <ol style="padding-left:16px">
+            <li>Open your Google Sheet → Extensions → Apps Script</li>
+            <li>Replace the code with the script below</li>
+            <li>Deploy → New Deployment → Web App</li>
+            <li>Execute as: Me, Access: Anyone</li>
+            <li>Copy the URL and paste above</li>
+          </ol>
+          <button class="btn btn-secondary btn-sm" style="margin-top:8px" id="copyScript">Copy Apps Script Code</button>
+        </div>
+      </details>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="dot"></div>TIMER SETTINGS</div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Default Rest Timer</div>
+          <div class="setting-desc">Duration between sets</div>
+        </div>
+        <select id="restDuration">
+          ${[60,90,120,150,180,210,240,300].map(s => `<option value="${s}" ${state.restDuration===s?'selected':''}>${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="dot"></div>DATA</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary btn-sm" id="exportData">Export JSON</button>
+        <button class="btn btn-secondary btn-sm" id="importData">Import JSON</button>
+        <button class="btn btn-secondary btn-sm" style="color:var(--red)" id="clearData">Clear All</button>
+      </div>
+      <input type="file" id="importFile" accept=".json" class="hidden">
+    </div>
+  </div>`;
+}
+
+// ============================
+// TIMER BAR
+// ============================
+function renderTimerBar() {
+  const t = state.timer;
+  const fmtTime = (s) => {
+    const m = Math.floor(s/60);
+    const sec = s % 60;
+    return `${m}:${String(sec).padStart(2,'0')}`;
+  };
+  const isCountUp = t.type === 'cardio';
+  const display = isCountUp ? fmtTime(t.seconds) : fmtTime(Math.max(0, t.total - t.seconds));
+  const pct = isCountUp ? 0 : Math.min(100, (t.seconds / t.total) * 100);
+  const remaining = t.total - t.seconds;
+  const timerClass = !t.running ? '' : remaining <= 0 ? 'ready' : remaining <= 10 ? 'warning' : '';
+
+  return `<div class="timer-bar">
+    <div class="timer-inner">
+      <div style="display:flex;gap:4px">
+        <button class="timer-type-toggle ${t.type==='rest'?'active':''}" data-timertype="rest">REST</button>
+        <button class="timer-type-toggle ${t.type==='cardio'?'active':''}" data-timertype="cardio">CARDIO</button>
+      </div>
+      <div class="timer-progress"><div class="timer-progress-fill" style="width:${pct}%"></div></div>
+      <div class="timer-display ${timerClass}">${display}</div>
+      <div class="timer-controls">
+        ${t.running ? `
+          <button class="timer-btn" id="timerStop"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg></button>
+        ` : `
+          <button class="timer-btn primary" id="timerStart"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="5,3 19,12 5,21"/></svg></button>
+        `}
+        <button class="timer-btn" id="timerReset"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ============================
+// PLATE MATH MODAL
+// ============================
+function renderPlateModal() {
+  const w = state.plateMathWeight;
+  const plates = calcPlates(w);
+  const perSide = (w - BAR_WEIGHT) / 2;
+
+  return `<div class="modal-overlay" id="plateOverlay">
+    <div class="modal">
+      <div class="modal-title">
+        PLATE CALCULATOR
+        <button class="icon-btn" id="closePlate"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+      </div>
+      <div style="text-align:center;margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px">
+          <button class="btn btn-secondary btn-sm" data-plateadj="-10">-10</button>
+          <button class="btn btn-secondary btn-sm" data-plateadj="-5">-5</button>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:2.4rem;min-width:100px">${w} <span style="font-size:1rem;color:var(--text3)">lbs</span></div>
+          <button class="btn btn-secondary btn-sm" data-plateadj="5">+5</button>
+          <button class="btn btn-secondary btn-sm" data-plateadj="10">+10</button>
+        </div>
+        <div style="font-size:.78rem;color:var(--text2);margin-top:4px">${perSide > 0 ? perSide + ' lbs per side' : 'Bar only'}</div>
+      </div>
+
+      <div class="plate-visual">
+        ${plates.slice().reverse().map(p => `<div class="plate" style="background:${PLATE_COLORS[p]};height:${PLATE_HEIGHTS[p]}px;width:${p>=25?18:14}px">${p}</div>`).join('')}
+        <div class="bar-collar"></div>
+        <div class="bar-end"></div>
+        <div class="bar-collar"></div>
+        ${plates.map(p => `<div class="plate" style="background:${PLATE_COLORS[p]};height:${PLATE_HEIGHTS[p]}px;width:${p>=25?18:14}px">${p}</div>`).join('')}
+      </div>
+
+      <div style="text-align:center;margin-top:16px">
+        <div style="font-size:.78rem;color:var(--text2);font-weight:600;margin-bottom:8px">PER SIDE:</div>
+        <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap">
+          ${plates.length === 0 ? '<div style="color:var(--text3);font-size:.85rem">No plates needed</div>' : ''}
+          ${[...new Set(plates)].map(p => {
+            const count = plates.filter(x=>x===p).length;
+            return `<div style="background:${PLATE_COLORS[p]};color:#fff;padding:6px 14px;border-radius:var(--radius-sm);font-family:'JetBrains Mono',monospace;font-size:.85rem;font-weight:600">${count}×${p}</div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ============================
+// APPS SCRIPT CODE
+// ============================
+const APPS_SCRIPT_CODE = `
+// Google Apps Script for Lift Tracker
+// Deploy as Web App: Execute as Me, Access: Anyone
+
+function doGet(e) {
+  const action = e.parameter.action || 'read';
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('WorkoutLog') || ss.insertSheet('WorkoutLog');
+
+  if (action === 'read') {
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0] || [];
+    const rows = data.slice(1).map(row => {
+      const obj = {};
+      headers.forEach((h, i) => obj[h] = row[i]);
+      return obj;
+    });
+    return ContentService.createTextOutput(JSON.stringify(rows)).setMimeType(ContentService.MimeType.JSON);
+  }
+  return ContentService.createTextOutput('{}').setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('WorkoutLog');
+
+  if (!sheet) {
+    sheet = ss.insertSheet('WorkoutLog');
+    sheet.appendRow(['Date','Exercise','Type','Set','Weight','Reps','Duration','Volume','Session ID']);
+  }
+
+  const body = JSON.parse(e.postData.contents);
+  if (body.action === 'append' && body.data) {
+    const d = body.data;
+    const sessionId = d.date;
+    d.exercises.forEach(ex => {
+      ex.sets.forEach((set, i) => {
+        sheet.appendRow([
+          d.date,
+          ex.name,
+          ex.type,
+          i + 1,
+          set.weight || 0,
+          set.reps || 0,
+          set.duration || 0,
+          (set.weight || 0) * (set.reps || 0),
+          sessionId
+        ]);
+      });
+    });
+  }
+  return ContentService.createTextOutput('{"status":"ok"}').setMimeType(ContentService.MimeType.JSON);
+}
+`;
+
+// ============================
+// EVENT BINDING
+// ============================
+function bindEvents() {
+  // View switching
+  document.querySelectorAll('[data-view]').forEach(btn => {
+    btn.onclick = () => { state.view = btn.dataset.view; render(); };
+  });
+
+  // Exercise selection
+  document.querySelectorAll('.ex-chip').forEach(btn => {
+    btn.onclick = () => {
+      const {section, id} = btn.dataset;
+      const arr = state.selectedExercises[section];
+      const idx = arr.indexOf(id);
+      if (idx >= 0) arr.splice(idx, 1);
+      else {
+        const limits = {primary:3, accessory:4, cardio:4};
+        if (arr.length < limits[section]) arr.push(id);
+      }
+      render();
+    };
+  });
+
+  // Start workout
+  document.getElementById('startWorkout')?.addEventListener('click', () => {
+    const sel = state.selectedExercises;
+    const exercises = [...sel.primary, ...sel.accessory, ...sel.cardio].map(id => {
+      const ex = getExercise(id);
+      const section = sel.primary.includes(id) ? 'primary' : sel.accessory.includes(id) ? 'accessory' : 'cardio';
+      const defaultSets = section === 'primary' ? 5 : section === 'accessory' ? 4 : 3;
+      const suggested = suggestWeight(id);
+      return {
+        ...ex, section,
+        sets: Array.from({length: defaultSets}, () => ({
+          weight: suggested || 0,
+          reps: 0,
+          duration: 0,
+          done: false,
+        }))
+      };
+    });
+    state.workout = {exercises, startTime: new Date().toISOString()};
+    state.building = false;
+    render();
+  });
+
+  // Set check toggle
+  document.querySelectorAll('.set-check').forEach(btn => {
+    btn.onclick = () => {
+      const ei = +btn.dataset.ei, si = +btn.dataset.si;
+      const set = state.workout.exercises[ei].sets[si];
+      set.done = !set.done;
+      if (set.done && state.timer.type === 'rest') {
+        startTimer('rest', state.restDuration);
+      }
+      render();
+    };
+  });
+
+  // Set inputs
+  document.querySelectorAll('.set-inputs input').forEach(inp => {
+    inp.oninput = () => {
+      const ei = +inp.dataset.ei, si = +inp.dataset.si;
+      const field = inp.dataset.field;
+      state.workout.exercises[ei].sets[si][field] = parseFloat(inp.value) || 0;
+    };
+  });
+
+  // Add/remove set
+  document.querySelectorAll('[data-addset]').forEach(btn => {
+    btn.onclick = () => {
+      const ei = +btn.dataset.addset;
+      const ex = state.workout.exercises[ei];
+      const suggested = suggestWeight(ex.id);
+      ex.sets.push({weight: suggested||0, reps:0, duration:0, done:false});
+      render();
+    };
+  });
+  document.querySelectorAll('[data-removeset]').forEach(btn => {
+    btn.onclick = () => {
+      const ei = +btn.dataset.removeset;
+      state.workout.exercises[ei].sets.pop();
+      render();
+    };
+  });
+
+  // Finish / Cancel
+  document.getElementById('finishWorkout')?.addEventListener('click', saveWorkout);
+  document.getElementById('cancelWorkout')?.addEventListener('click', () => {
+    if (confirm('Cancel workout? Progress will be lost.')) {
+      state.workout = null;
+      state.building = true;
+      render();
+    }
+  });
+
+  // Timer
+  document.getElementById('timerStart')?.addEventListener('click', () => {
+    startTimer(state.timer.type, state.timer.type==='rest'?state.restDuration:0);
+  });
+  document.getElementById('timerStop')?.addEventListener('click', stopTimer);
+  document.getElementById('timerReset')?.addEventListener('click', resetTimer);
+  document.querySelectorAll('[data-timertype]').forEach(btn => {
+    btn.onclick = () => {
+      stopTimer();
+      state.timer.type = btn.dataset.timertype;
+      state.timer.seconds = 0;
+      state.timer.total = state.timer.type === 'rest' ? state.restDuration : 0;
+      render();
+    };
+  });
+
+  // Sync all history
+  document.getElementById('syncAll')?.addEventListener('click', syncAllHistory);
+
+  // Plate math
+  document.querySelectorAll('[data-platemath]').forEach(btn => {
+    btn.onclick = () => {
+      const ei = +btn.dataset.platemath;
+      const set = state.workout.exercises[ei].sets[0];
+      state.plateMathWeight = set.weight || 135;
+      state.showPlateModal = true;
+      render();
+    };
+  });
+  document.getElementById('closePlate')?.addEventListener('click', () => {
+    state.showPlateModal = false;
+    render();
+  });
+  document.getElementById('plateOverlay')?.addEventListener('click', (e) => {
+    if (e.target.id === 'plateOverlay') { state.showPlateModal = false; render(); }
+  });
+  document.querySelectorAll('[data-plateadj]').forEach(btn => {
+    btn.onclick = () => {
+      state.plateMathWeight = Math.max(BAR_WEIGHT, state.plateMathWeight + parseInt(btn.dataset.plateadj));
+      render();
+    };
+  });
+
+  // Settings
+  document.getElementById('saveSheetConfig')?.addEventListener('click', () => {
+    const url = document.getElementById('scriptUrl').value.trim();
+    localStorage.setItem('ironlog_scriptUrl', url);
+    showToast(url ? 'Web App URL saved!' : 'URL cleared', 'success');
+  });
+
+  document.getElementById('restDuration')?.addEventListener('change', (e) => {
+    state.restDuration = parseInt(e.target.value);
+    localStorage.setItem('ironlog_restDuration', state.restDuration);
+  });
+
+  document.getElementById('copyScript')?.addEventListener('click', () => {
+    navigator.clipboard.writeText(APPS_SCRIPT_CODE).then(() => showToast('Script copied!','success'));
+  });
+
+  document.getElementById('exportData')?.addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify(state.history, null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'ironlog_export.json';
+    a.click();
+  });
+
+  document.getElementById('importData')?.addEventListener('click', () => {
+    document.getElementById('importFile').click();
+  });
+
+  document.getElementById('importFile')?.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        state.history = data;
+        localStorage.setItem('ironlog_history', JSON.stringify(data));
+        showToast('Data imported!', 'success');
+        render();
+      } catch(err) {
+        showToast('Invalid file', 'error');
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  document.getElementById('clearData')?.addEventListener('click', () => {
+    if (confirm('Delete ALL workout history? This cannot be undone.')) {
+      state.history = [];
+      localStorage.setItem('ironlog_history', '[]');
+      showToast('Data cleared', 'success');
+      render();
+    }
+  });
+}
+
+// Initial render
+render();
+</script>
+</body>
+</html>
