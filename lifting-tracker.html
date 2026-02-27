@@ -445,7 +445,19 @@ document.addEventListener('click', ensureAudioCtx, {once: true});
 
 function playDing() {
   try {
+    // Custom WAV chime if set in settings
+    const customChime = localStorage.getItem('ironlog_chime');
+    if (customChime) {
+      const audio = new Audio(customChime);
+      audio.volume = 1.0;
+      audio.play().catch(e => console.warn('Custom chime failed:', e));
+      return;
+    }
     const ctx = ensureAudioCtx();
+    // Guard: if the AudioContext is suspended (e.g. tab was backgrounded), don't schedule
+    // oscillators — they'd fire immediately when the context next resumes (on user tap),
+    // causing a phantom chime when the user hits Play to restart the timer.
+    if (ctx.state !== 'running') return;
     // Louder, longer three-tone chime for mobile
     var freqs = [659.25, 830.61, 987.77]; // E5, G#5, B5 — major chord
     freqs.forEach(function(freq, i) {
@@ -521,12 +533,10 @@ function startTimer(type='rest', duration=null) {
       var controls = document.querySelector('.timer-controls');
       if (controls) {
         controls.innerHTML =
-          '<button class="timer-btn primary" id="timerStart"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="5,3 19,12 5,21"/></svg></button>' +
-          '<button class="timer-btn" id="timerReset"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>';
+          '<button class="timer-btn primary" id="timerStart"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="5,3 19,12 5,21"/></svg></button>';
         document.getElementById('timerStart')?.addEventListener('click', function() {
           startTimer(state.timer.type, state.timer.type === 'rest' ? state.restDuration : 0);
         });
-        document.getElementById('timerReset')?.addEventListener('click', resetTimer);
       }
       return;
     }
@@ -543,12 +553,25 @@ function cancelTimerTick() {
   if (_timerInterval) { clearTimeout(_timerInterval); _timerInterval = null; }
 }
 
-// Also catch up immediately when tab regains focus
+// Catch up when tab regains focus / screen unlocks
 document.addEventListener('visibilitychange', function() {
   if (!document.hidden && state.timer.running && state.timer.startTime) {
     var elapsed = Math.floor((Date.now() - state.timer.startTime) / 1000);
     state.timer.seconds = elapsed;
-    updateTimerDOM();
+    // Timer expired while the screen was locked or the app was backgrounded
+    if (state.timer.type === 'rest' && state.timer.total > 0 && elapsed >= state.timer.total && !state.timer._dinged) {
+      state.timer._dinged = true;
+      state.timer.running = false;
+      cancelTimerTick();
+      playDing(); // works if AudioContext was kept running; skipped safely if suspended
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('Lift Tracker', {body: 'Rest complete — get after it!'});
+      }
+      try { navigator.vibrate?.([200, 100, 200, 100, 200]); } catch(e) {}
+      render(); // re-render so controls flip to Play button
+    } else {
+      updateTimerDOM();
+    }
   }
 });
 
@@ -561,12 +584,10 @@ function stopTimer() {
   if (controls) {
     controls.innerHTML = `
       <button class="timer-btn primary" id="timerStart"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="5,3 19,12 5,21"/></svg></button>
-      <button class="timer-btn" id="timerReset"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>
     `;
     document.getElementById('timerStart')?.addEventListener('click', () => {
       startTimer(state.timer.type, state.timer.type==='rest'?state.restDuration:0);
     });
-    document.getElementById('timerReset')?.addEventListener('click', resetTimer);
   }
 }
 
@@ -581,12 +602,10 @@ function resetTimer() {
   if (controls) {
     controls.innerHTML = `
       <button class="timer-btn primary" id="timerStart"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="5,3 19,12 5,21"/></svg></button>
-      <button class="timer-btn" id="timerReset"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>
     `;
     document.getElementById('timerStart')?.addEventListener('click', () => {
       startTimer(state.timer.type, state.timer.type==='rest'?state.restDuration:0);
     });
-    document.getElementById('timerReset')?.addEventListener('click', resetTimer);
   }
 }
 
@@ -1291,6 +1310,17 @@ function renderSettings() {
           ${[60,90,120,150,180,210,240,300].map(s => `<option value="${s}" ${state.restDuration===s?'selected':''}>${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}</option>`).join('')}
         </select>
       </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Timer Chime</div>
+          <div class="setting-desc">${localStorage.getItem('ironlog_chime') ? 'Custom file loaded' : 'Default synth chime'}</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-secondary btn-sm" id="uploadChime">Upload WAV</button>
+          ${localStorage.getItem('ironlog_chime') ? '<button class="btn btn-secondary btn-sm" style="color:var(--red)" id="clearChime">Clear</button>' : ''}
+        </div>
+      </div>
+      <input type="file" id="chimeFile" accept="audio/*" class="hidden">
     </div>
 
     <div class="card">
@@ -1331,8 +1361,8 @@ function renderTimerBar() {
             <button class="timer-preset" data-quicktimer="60">1:00</button>
             <button class="timer-preset" data-quicktimer="90">1:30</button>
             <button class="timer-preset" data-quicktimer="120">2:00</button>
-            <button class="timer-preset" data-quicktimer="150">2:30</button>
-            <button class="timer-preset" data-quicktimer="180">3:00</button>
+            <button class="timer-preset" data-quicktimer="300">5:00</button>
+            <button class="timer-preset" data-quicktimer="600">10:00</button>
           </div>
         ` : ''}
         <div style="margin-left:auto">
@@ -1347,7 +1377,6 @@ function renderTimerBar() {
           ` : `
             <button class="timer-btn primary" id="timerStart"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="5,3 19,12 5,21"/></svg></button>
           `}
-          <button class="timer-btn" id="timerReset"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>
         </div>
       </div>
     </div>
@@ -2040,7 +2069,6 @@ function bindEvents() {
     startTimer(state.timer.type, state.timer.type==='rest'?state.restDuration:0);
   });
   document.getElementById('timerStop')?.addEventListener('click', stopTimer);
-  document.getElementById('timerReset')?.addEventListener('click', resetTimer);
   document.querySelectorAll('[data-timertype]').forEach(btn => {
     btn.onclick = () => {
       stopTimer();
@@ -2125,6 +2153,26 @@ function bindEvents() {
   document.getElementById('restDuration')?.addEventListener('change', (e) => {
     state.restDuration = parseInt(e.target.value);
     localStorage.setItem('ironlog_restDuration', state.restDuration);
+  });
+
+  document.getElementById('uploadChime')?.addEventListener('click', () => {
+    document.getElementById('chimeFile').click();
+  });
+  document.getElementById('chimeFile')?.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      localStorage.setItem('ironlog_chime', ev.target.result);
+      showToast('Chime updated!', 'success');
+      render();
+    };
+    reader.readAsDataURL(file);
+  });
+  document.getElementById('clearChime')?.addEventListener('click', () => {
+    localStorage.removeItem('ironlog_chime');
+    showToast('Reset to default chime', 'success');
+    render();
   });
 
   document.getElementById('copyScript')?.addEventListener('click', () => {
