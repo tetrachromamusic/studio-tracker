@@ -24,7 +24,7 @@ input:focus,select:focus{border-color:var(--accent)}
 select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239a9898' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
 
 /* Layout */
-.app{max-width:480px;margin:0 auto;padding:0 12px 100px}
+.app{max-width:480px;margin:0 auto;padding:0 12px 120px}
 header{display:flex;align-items:center;justify-content:space-between;padding:8px 0 6px;border-bottom:1px solid var(--border);margin-bottom:10px;position:sticky;top:0;background:var(--bg);z-index:100}
 .logo{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:2px;color:var(--accent)}
 .logo span{color:var(--text)}
@@ -167,13 +167,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:8px
 .hidden{display:none!important}
 
 /* Body group label */
-.acc-group-label{font-size:.72rem;font-weight:700;color:var(--text2);letter-spacing:.5px;padding:8px 10px;margin-top:4px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;transition:all .12s}
-.acc-group-label:hover,.acc-group-label:active{border-color:var(--text3)}
-.acc-group-label .acc-arrow{font-size:.6rem;color:var(--text3);transition:transform .2s}
-.acc-group-label.open .acc-arrow{transform:rotate(90deg)}
-.acc-group-label .acc-count{font-size:.6rem;color:var(--accent);font-weight:700;margin-left:auto;margin-right:6px}
-.acc-group-grid{display:none;margin-bottom:4px}
-.acc-group-grid.open{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px;margin-bottom:8px}
+.acc-group-label{font-size:.65rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;padding:6px 0 3px;margin-top:4px}
 
 /* Circuit toggle */
 .circuit-toggle{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:var(--radius-sm);font-size:.72rem;font-weight:600;background:var(--surface2);border:1px solid var(--border);margin:6px 0 10px;cursor:pointer}
@@ -201,7 +195,15 @@ header{display:flex;align-items:center;justify-content:space-between;padding:8px
 
 /* Circuit round header */
 .circuit-round{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--blue);background:var(--blue-dim);padding:4px 10px;border-radius:4px;margin:8px 0 4px;display:flex;align-items:center;gap:6px}
-.circuit-round::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--blue)}
+.circuit-round::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
+
+/* Drag reorder */
+.edit-item{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--border);cursor:grab;touch-action:none;user-select:none;transition:background .1s}
+.edit-item:active{cursor:grabbing}
+.edit-item.dragging{background:var(--yellow-dim);opacity:.8;border-radius:var(--radius-sm)}
+.edit-item .drag-handle{color:var(--text3);font-size:.8rem;flex-shrink:0;padding:0 2px}
+.edit-item .edit-name{font-size:.78rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.edit-drop-indicator{height:2px;background:var(--yellow);margin:0 10px;border-radius:1px;transition:opacity .1s}
 
 /* Toast */
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--border);padding:10px 18px;border-radius:var(--radius);font-size:.82rem;font-weight:600;z-index:400;animation:fadeUp .3s ease;pointer-events:none}
@@ -278,6 +280,13 @@ const EXERCISES = {
     {id:'cd_row',name:'Rowing',type:'cardio',noWeight:true,isCardio:true,timedOnly:true},
     {id:'cd_bike',name:'Assault/Echo Bike',type:'cardio',noWeight:true,isCardio:true,timedOnly:true},
     {id:'cd_run',name:'Run',type:'cardio',noWeight:true,isCardio:true,timedOnly:true},
+    {id:'cd_pushup',name:'Pushups',type:'cardio',noWeight:true,isCardio:true},
+    {id:'cd_pullup',name:'Pull-ups',type:'cardio',noWeight:true,isCardio:true},
+    {id:'cd_chinup',name:'Chin-ups',type:'cardio',noWeight:true,isCardio:true},
+    {id:'cd_dip',name:'Dips',type:'cardio',noWeight:true,isCardio:true},
+    {id:'cd_t2b',name:'Toes to Bar',type:'cardio',noWeight:true,isCardio:true},
+    {id:'cd_hleg',name:'Hanging Leg Raise',type:'cardio',noWeight:true,isCardio:true},
+    {id:'cd_situp',name:'Sit-ups',type:'cardio',noWeight:true,isCardio:true},
   ],
 };
 
@@ -295,6 +304,7 @@ let state = {
   building: true, // in build mode
   selectedExercises: {primary:[],accessory:[],cardio:[]},
   accessoryCircuit: true,
+  cardioCircuit: false,
   weeklyGoal: 3,
   history: JSON.parse(localStorage.getItem('ironlog_history')||'[]'),
   sheetConnected: false,
@@ -741,6 +751,13 @@ function render() {
   _rendered = true;
   bindEvents();
 
+  // Restore edit panel open state
+  if (state._editPanelOpen) {
+    const panel = document.getElementById('editModePanel');
+    if (panel) panel.classList.remove('hidden');
+    state._editPanelOpen = false;
+  }
+
   // Restore scroll position
   window.scrollTo(0, scrollY);
 
@@ -812,16 +829,9 @@ function renderBuilder() {
         <button class="ex-chip ${!state.accessoryCircuit?'selected-blue':''}" id="modeIndividual">Individual</button>
         <button class="ex-chip ${state.accessoryCircuit?'selected-blue':''}" id="modeCircuit">Circuit</button>
       </div>
-      ${groupOrder.map(g => {
-        if (grouped[g].length === 0) return '';
-        const selectedCount = grouped[g].filter(ex => sel.accessory.includes(ex.id)).length;
-        return `
-        <div class="acc-group-label" data-accgroup="${g}">
-          ${groupLabels[g]}
-          ${selectedCount > 0 ? '<span class="acc-count">'+selectedCount+'</span>' : ''}
-          <span class="acc-arrow">▶</span>
-        </div>
-        <div class="acc-group-grid" data-accgrid="${g}">
+      ${groupOrder.map(g => grouped[g].length === 0 ? '' : `
+        <div class="acc-group-label">${groupLabels[g]}</div>
+        <div class="exercise-grid">
           ${grouped[g].map(ex => `
             <button class="ex-chip ${sel.accessory.includes(ex.id)?'selected':''}" data-section="accessory" data-id="${ex.id}">
               <span style="font-size:.55rem;color:var(--text3);display:block;margin-bottom:1px">${ex.type.toUpperCase()}</span>
@@ -829,9 +839,13 @@ function renderBuilder() {
             </button>
           `).join('')}
         </div>
-      `;}).join('')}
+      `).join('')}
 
       <div class="section-header">SECTION 3 — CARDIO</div>
+      <div class="exercise-grid" style="margin-bottom:10px">
+        <button class="ex-chip ${!state.cardioCircuit?'selected-blue':''}" id="cardioModeIndividual">Individual</button>
+        <button class="ex-chip ${state.cardioCircuit?'selected-blue':''}" id="cardioModeCircuit">Circuit</button>
+      </div>
       <div class="exercise-grid">
         ${EXERCISES.cardio.map(ex => `
           <button class="ex-chip ${sel.cardio.includes(ex.id)?'selected':''}" data-section="cardio" data-id="${ex.id}">
@@ -864,6 +878,7 @@ function renderActiveWorkout() {
   const accessories = w.exercises.filter(ex => ex.section === 'accessory');
   const cardios = w.exercises.filter(ex => ex.section === 'cardio');
   const hasCircuit = accessories.length > 0 && accessories[0]?.isCircuit;
+  const hasCardioCircuit = cardios.length > 0 && cardios[0]?.isCircuit;
 
   return `
     <div class="fade-up">
@@ -874,9 +889,9 @@ function renderActiveWorkout() {
 
       ${primaries.map(ex => renderExerciseCard(ex, w.exercises.indexOf(ex))).join('')}
 
-      ${hasCircuit && accessories.length > 0 ? renderCircuitBlock(accessories, w) : accessories.map(ex => renderExerciseCard(ex, w.exercises.indexOf(ex))).join('')}
+      ${hasCircuit && accessories.length > 0 ? renderCircuitBlock(accessories, w, 'circuit') : accessories.map(ex => renderExerciseCard(ex, w.exercises.indexOf(ex))).join('')}
 
-      ${cardios.map(ex => renderExerciseCard(ex, w.exercises.indexOf(ex))).join('')}
+      ${hasCardioCircuit && cardios.length > 0 ? renderCircuitBlock(cardios, w, 'cardio') : cardios.map(ex => renderExerciseCard(ex, w.exercises.indexOf(ex))).join('')}
 
       <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
         <button class="btn btn-secondary btn-sm" id="addExerciseBtn">+ Add</button>
@@ -912,15 +927,16 @@ function renderActiveWorkout() {
 
       <div id="editModePanel" class="hidden" style="margin-top:8px">
         <div class="card" style="padding:10px;border-color:var(--yellow)">
-          <div style="font-size:.7rem;font-weight:600;color:var(--yellow);margin-bottom:6px">REORDER / REMOVE</div>
+          <div style="font-size:.7rem;font-weight:600;color:var(--yellow);margin-bottom:6px">DRAG TO REORDER</div>
+          <div id="editList">
           ${w.exercises.map((ex, ei) => `
-            <div style="display:flex;align-items:center;gap:4px;padding:5px 0;border-bottom:1px solid var(--border)">
-              <span style="font-size:.78rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ex.name}</span>
-              ${ei > 0 ? '<button class="btn btn-secondary btn-sm" data-moveup="'+ei+'" style="padding:2px 6px;font-size:.65rem">\u2191</button>' : '<span style="width:24px"></span>'}
-              ${ei < w.exercises.length - 1 ? '<button class="btn btn-secondary btn-sm" data-movedown="'+ei+'" style="padding:2px 6px;font-size:.65rem">\u2193</button>' : '<span style="width:24px"></span>'}
+            <div class="edit-item" data-editei="${ei}" draggable="true">
+              <span class="drag-handle">☰</span>
+              <span class="edit-name">${ex.name}</span>
               <button class="btn btn-secondary btn-sm" data-removeex="${ei}" style="padding:2px 6px;font-size:.65rem;color:var(--red)">\u2715</button>
             </div>
           `).join('')}
+          </div>
         </div>
       </div>
 
@@ -935,15 +951,18 @@ function renderActiveWorkout() {
 // ============================
 // CIRCUIT BLOCK — groups accessories into rounds
 // ============================
-function renderCircuitBlock(accessories, w) {
-  if (accessories.length === 0) return '';
-  const numRounds = accessories[0]?.sets?.length || 3;
-  let html = '<div class="card" style="border-color:var(--blue)">';
-  html += '<div class="card-title"><div class="dot" style="background:var(--blue)"></div>CIRCUIT<span style="margin-left:auto;font-size:.72rem;color:var(--text3);font-weight:400">' + numRounds + ' round' + (numRounds !== 1 ? 's' : '') + '</span></div>';
+function renderCircuitBlock(exercises, w, label) {
+  if (exercises.length === 0) return '';
+  var lbl = label || 'circuit';
+  var color = lbl === 'cardio' ? 'var(--green)' : 'var(--blue)';
+  var colorDim = lbl === 'cardio' ? 'var(--green-dim)' : 'var(--blue-dim)';
+  const numRounds = exercises[0]?.sets?.length || 3;
+  let html = '<div class="card" style="border-color:' + color + '">';
+  html += '<div class="card-title"><div class="dot" style="background:' + color + '"></div>' + lbl.toUpperCase() + '<span style="margin-left:auto;font-size:.72rem;color:var(--text3);font-weight:400">' + numRounds + ' round' + (numRounds !== 1 ? 's' : '') + '</span></div>';
 
   for (let round = 0; round < numRounds; round++) {
-    html += '<div class="circuit-round">ROUND ' + (round + 1) + '</div>';
-    accessories.forEach(function(ex) {
+    html += '<div class="circuit-round" style="color:' + color + ';background:' + colorDim + '">ROUND ' + (round + 1) + '</div>';
+    exercises.forEach(function(ex) {
       var ei = w.exercises.indexOf(ex);
       var exDef = getExercise(ex.id);
       var set = ex.sets[round] || {weight:0,reps:0,done:false,duration:0};
@@ -954,7 +973,7 @@ function renderCircuitBlock(accessories, w) {
       html += '<div class="set-label" style="color:var(--text)">' + ex.name + '</div>';
       html += '<div class="set-inputs">';
       if (isTimedCardio) {
-        html += '<input type="number" placeholder="sec" value="' + (set.duration || '') + '" data-field="duration" data-ei="' + ei + '" data-si="' + round + '" inputmode="numeric"><span class="unit">sec</span>';
+        html += '<input type="number" placeholder="min" value="' + (set.duration || '') + '" data-field="duration" step="0.1" data-ei="' + ei + '" data-si="' + round + '" inputmode="numeric"><span class="unit">min</span>';
       } else {
         if (showWeight) {
           html += '<input type="number" placeholder="lbs" value="' + (set.weight || '') + '" data-field="weight" data-ei="' + ei + '" data-si="' + round + '" inputmode="decimal"><span class="unit">lbs</span>';
@@ -969,8 +988,8 @@ function renderCircuitBlock(accessories, w) {
   }
 
   html += '<div style="display:flex;gap:6px;margin-top:8px">';
-  html += '<button class="btn btn-secondary btn-sm" id="addCircuitRound">+ Round</button>';
-  if (numRounds > 1) html += '<button class="btn btn-secondary btn-sm" id="removeCircuitRound">\u2212 Round</button>';
+  html += '<button class="btn btn-secondary btn-sm" data-addround="' + lbl + '">+ Round</button>';
+  if (numRounds > 1) html += '<button class="btn btn-secondary btn-sm" data-removeround="' + lbl + '">\u2212 Round</button>';
   html += '</div>';
   html += '</div>';
   return html;
@@ -1040,13 +1059,13 @@ function renderExerciseCard(ex, ei) {
         <button class="scheme-pill ${scheme==='pyramid'?'active':''}" data-scheme="pyramid" data-schemeei="${ei}">Pyramid</button>
         <button class="scheme-pill ${scheme==='drop'?'active':''}" data-scheme="drop" data-schemeei="${ei}">Drop</button>
       </div>` : ''}
-      ${prev ? '<div class="prev-info">Previous: <span>'+prev.sets.map(function(s){return isTimedCardio?(s.duration||0)+'s':((isBWopt && !s.weight)?'BW':((isBWopt?'BW+':'')+s.weight))+'\u00d7'+(s.reps||0);}).join(', ')+'</span></div>' : '<div class="prev-info">No previous data</div>'}
+      ${prev ? '<div class="prev-info">Previous: <span>'+prev.sets.map(function(s){return isTimedCardio?(s.duration||0)+'m':((isBWopt && !s.weight)?'BW':((isBWopt?'BW+':'')+s.weight))+'\u00d7'+(s.reps||0);}).join(', ')+'</span></div>' : '<div class="prev-info">No previous data</div>'}
       ${ex.sets.map(function(set, si) { return `
         <div class="set-row">
           <div class="set-info">
             <div class="set-label">SET ${si+1}${set.repLabel ? ' \u00b7 '+set.repLabel : ''}${isBWopt ? (set.weight ? ' \u00b7 BW+'+set.weight : ' \u00b7 BW') : ''}</div>
             <div class="set-inputs">
-              ${isTimedCardio ? `<input type="number" placeholder="sec" value="${set.duration||''}" data-field="duration" data-ei="${ei}" data-si="${si}" inputmode="numeric"><span class="unit">sec</span>` : `${showWeight ? `<input type="number" placeholder="${isBWopt ? '+lbs' : (suggested||'lbs')}" value="${set.weight||''}" data-field="weight" data-ei="${ei}" data-si="${si}" inputmode="decimal"><span class="unit">${isBWopt ? 'added' : 'lbs'}</span>` : ''}<input type="number" placeholder="${set.targetReps||'reps'}" value="${set.reps||''}" data-field="reps" data-ei="${ei}" data-si="${si}" inputmode="numeric"><span class="unit">${set.repLabel||'reps'}</span>`}
+              ${isTimedCardio ? `<input type="number" placeholder="min" value="${set.duration||''}" data-field="duration" step="0.1" data-ei="${ei}" data-si="${si}" inputmode="numeric"><span class="unit">min</span>` : `${showWeight ? `<input type="number" placeholder="${isBWopt ? '+lbs' : (suggested||'lbs')}" value="${set.weight||''}" data-field="weight" data-ei="${ei}" data-si="${si}" inputmode="decimal"><span class="unit">${isBWopt ? 'added' : 'lbs'}</span>` : ''}<input type="number" placeholder="${set.targetReps||'reps'}" value="${set.reps||''}" data-field="reps" data-ei="${ei}" data-si="${si}" inputmode="numeric"><span class="unit">${set.repLabel||'reps'}</span>`}
             </div>
           </div>
           <button class="set-check ${set.done?'done':''}" data-ei="${ei}" data-si="${si}">
@@ -1096,7 +1115,7 @@ function renderSessionHistory() {
         <div class="history-item">
           <div class="history-exercise">${ex.name}</div>
           <div class="history-detail">
-            ${ex.sets.map(s => s.duration ? `${s.duration}s` : `${s.weight||0}×${s.reps||0}`).join(' → ')}
+            ${ex.sets.map(s => s.duration ? `${s.duration}m` : `${s.weight||0}×${s.reps||0}`).join(' → ')}
             ${ex.totalVolume ? ` · Vol: ${ex.totalVolume.toLocaleString()} lbs` : ''}
           </div>
         </div>
@@ -1682,49 +1701,32 @@ function bindEvents() {
     state.accessoryCircuit = false;
     render();
   });
-
-  // Accessory group fold-out toggles
-  document.querySelectorAll('.acc-group-label[data-accgroup]').forEach(label => {
-    label.onclick = () => {
-      const g = label.dataset.accgroup;
-      const grid = document.querySelector('.acc-group-grid[data-accgrid="'+g+'"]');
-      if (grid) {
-        const isOpen = grid.classList.contains('open');
-        grid.classList.toggle('open', !isOpen);
-        label.classList.toggle('open', !isOpen);
-      }
-    };
+  document.getElementById('cardioModeCircuit')?.addEventListener('click', () => {
+    state.cardioCircuit = true;
+    render();
+  });
+  document.getElementById('cardioModeIndividual')?.addEventListener('click', () => {
+    state.cardioCircuit = false;
+    render();
   });
 
   // Exercise selection — targeted toggle
   document.querySelectorAll('.ex-chip').forEach(btn => {
     btn.onclick = () => {
       const {section, id} = btn.dataset;
-      if (!section || !id) return; // mode buttons don't have section
+      if (!section || !id) return;
       const arr = state.selectedExercises[section];
       const idx = arr.indexOf(id);
       if (idx >= 0) {
         arr.splice(idx, 1);
         btn.classList.remove('selected');
       } else {
-        const limits = {primary:3, accessory:6, cardio:4};
+        const limits = {primary:3, accessory:6, cardio:6};
         if (arr.length < limits[section]) {
           arr.push(id);
           btn.classList.add('selected');
         }
       }
-      // Update group count badges
-      document.querySelectorAll('.acc-group-label[data-accgroup]').forEach(label => {
-        const g = label.dataset.accgroup;
-        const grid = document.querySelector('.acc-group-grid[data-accgrid="'+g+'"]');
-        if (!grid) return;
-        const chips = grid.querySelectorAll('.ex-chip.selected');
-        let badge = label.querySelector('.acc-count');
-        if (chips.length > 0) {
-          if (!badge) { badge = document.createElement('span'); badge.className = 'acc-count'; label.insertBefore(badge, label.querySelector('.acc-arrow')); }
-          badge.textContent = chips.length;
-        } else if (badge) { badge.remove(); }
-      });
       const total = state.selectedExercises.primary.length + state.selectedExercises.accessory.length + state.selectedExercises.cardio.length;
       const startBtn = document.getElementById('startWorkout');
       if (startBtn) {
@@ -1745,7 +1747,7 @@ function bindEvents() {
       const suggested = suggestWeight(id);
       return {
         ...ex, section,
-        isCircuit: section === 'accessory' && state.accessoryCircuit,
+        isCircuit: (section === 'accessory' && state.accessoryCircuit) || (section === 'cardio' && state.cardioCircuit),
         scheme: 'straight',
         sets: Array.from({length: defaultSets}, () => ({
           weight: suggested || 0, reps: 0, duration: 0, done: false, repLabel: '', targetReps: 0,
@@ -1844,30 +1846,88 @@ function bindEvents() {
     };
   });
 
-  // Move exercise up/down
-  document.querySelectorAll('[data-moveup]').forEach(btn => {
-    btn.onclick = () => {
-      const ei = +btn.dataset.moveup;
-      const arr = state.workout.exercises;
-      if (ei > 0) { [arr[ei-1], arr[ei]] = [arr[ei], arr[ei-1]]; }
-      render();
-    };
-  });
-  document.querySelectorAll('[data-movedown]').forEach(btn => {
-    btn.onclick = () => {
-      const ei = +btn.dataset.movedown;
-      const arr = state.workout.exercises;
-      if (ei < arr.length - 1) { [arr[ei], arr[ei+1]] = [arr[ei+1], arr[ei]]; }
-      render();
-    };
-  });
+  // Drag to reorder in edit panel
+  (function() {
+    const list = document.getElementById('editList');
+    if (!list) return;
+    let dragSrcEi = null;
 
-  // Remove exercise mid-workout
+    list.querySelectorAll('.edit-item').forEach(item => {
+      item.addEventListener('dragstart', (e) => {
+        dragSrcEi = +item.dataset.editei;
+        item.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', dragSrcEi);
+      });
+      item.addEventListener('dragend', () => {
+        item.classList.remove('dragging');
+        list.querySelectorAll('.edit-item').forEach(el => el.style.borderTop = '');
+      });
+      item.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        list.querySelectorAll('.edit-item').forEach(el => el.style.borderTop = '');
+        item.style.borderTop = '2px solid var(--yellow)';
+      });
+      item.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const targetEi = +item.dataset.editei;
+        if (dragSrcEi !== null && dragSrcEi !== targetEi) {
+          const arr = state.workout.exercises;
+          const moved = arr.splice(dragSrcEi, 1)[0];
+          const insertAt = targetEi > dragSrcEi ? targetEi - 1 : targetEi;
+          arr.splice(insertAt, 0, moved);
+          // Re-render but keep edit panel open
+          state._editPanelOpen = true;
+          render();
+        }
+        dragSrcEi = null;
+      });
+
+      // Touch drag support
+      let touchStartY = 0;
+      let touchClone = null;
+      item.addEventListener('touchstart', (e) => {
+        dragSrcEi = +item.dataset.editei;
+        touchStartY = e.touches[0].clientY;
+        item.classList.add('dragging');
+      }, {passive: true});
+      item.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const items = list.querySelectorAll('.edit-item');
+        items.forEach(el => el.style.borderTop = '');
+        const target = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.edit-item');
+        if (target && target !== item) target.style.borderTop = '2px solid var(--yellow)';
+      }, {passive: false});
+      item.addEventListener('touchend', (e) => {
+        item.classList.remove('dragging');
+        const touch = e.changedTouches[0];
+        const target = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.edit-item');
+        list.querySelectorAll('.edit-item').forEach(el => el.style.borderTop = '');
+        if (target && dragSrcEi !== null) {
+          const targetEi = +target.dataset.editei;
+          if (dragSrcEi !== targetEi) {
+            const arr = state.workout.exercises;
+            const moved = arr.splice(dragSrcEi, 1)[0];
+            const insertAt = targetEi > dragSrcEi ? targetEi - 1 : targetEi;
+            arr.splice(insertAt, 0, moved);
+            state._editPanelOpen = true;
+            render();
+          }
+        }
+        dragSrcEi = null;
+      });
+    });
+  })();
+
+  // Remove exercise mid-workout (keep edit panel open)
   document.querySelectorAll('[data-removeex]').forEach(btn => {
     btn.onclick = () => {
       const ei = +btn.dataset.removeex;
       if (confirm('Remove ' + state.workout.exercises[ei].name + '?')) {
         state.workout.exercises.splice(ei, 1);
+        state._editPanelOpen = true;
         render();
       }
     };
@@ -1937,20 +1997,28 @@ function bindEvents() {
     document.getElementById('manualEntryBox')?.classList.add('hidden');
   });
 
-  // Circuit round add/remove
-  document.getElementById('addCircuitRound')?.addEventListener('click', () => {
-    const acc = state.workout.exercises.filter(ex => ex.section === 'accessory' && ex.isCircuit);
-    acc.forEach(ex => {
-      ex.sets.push({weight:0,reps:0,duration:0,done:false,repLabel:'',targetReps:0});
-    });
-    render();
+  // Circuit round add/remove (supports both accessory and cardio circuits)
+  document.querySelectorAll('[data-addround]').forEach(btn => {
+    btn.onclick = () => {
+      const lbl = btn.dataset.addround;
+      const section = lbl === 'cardio' ? 'cardio' : 'accessory';
+      const acc = state.workout.exercises.filter(ex => ex.section === section && ex.isCircuit);
+      acc.forEach(ex => {
+        ex.sets.push({weight:0,reps:0,duration:0,done:false,repLabel:'',targetReps:0});
+      });
+      render();
+    };
   });
-  document.getElementById('removeCircuitRound')?.addEventListener('click', () => {
-    const acc = state.workout.exercises.filter(ex => ex.section === 'accessory' && ex.isCircuit);
-    acc.forEach(ex => {
-      if (ex.sets.length > 1) ex.sets.pop();
-    });
-    render();
+  document.querySelectorAll('[data-removeround]').forEach(btn => {
+    btn.onclick = () => {
+      const lbl = btn.dataset.removeround;
+      const section = lbl === 'cardio' ? 'cardio' : 'accessory';
+      const acc = state.workout.exercises.filter(ex => ex.section === section && ex.isCircuit);
+      acc.forEach(ex => {
+        if (ex.sets.length > 1) ex.sets.pop();
+      });
+      render();
+    };
   });
 
   // Finish / Cancel
