@@ -25,7 +25,7 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 
 /* Layout */
 .app{max-width:480px;margin:0 auto;padding:0 12px 100px}
-header{display:flex;align-items:center;justify-content:space-between;padding:16px 0 12px;border-bottom:1px solid var(--border);margin-bottom:16px;position:sticky;top:0;background:var(--bg);z-index:100}
+header{display:flex;align-items:center;justify-content:space-between;padding:8px 0 6px;border-bottom:1px solid var(--border);margin-bottom:10px;position:sticky;top:0;background:var(--bg);z-index:100}
 .logo{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:2px;color:var(--accent)}
 .logo span{color:var(--text)}
 .header-actions{display:flex;gap:8px}
@@ -45,7 +45,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:16p
 .card-title .dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
 
 /* Section Builder */
-.section-header{font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:1.5px;color:var(--accent);margin:18px 0 8px;display:flex;align-items:center;gap:6px}
+.section-header{font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:1.5px;color:var(--accent);margin:12px 0 6px;display:flex;align-items:center;gap:6px}
 .section-header::after{content:'';flex:1;height:1px;background:var(--border)}
 
 /* Exercise Selector */
@@ -53,6 +53,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:16p
 .ex-chip{padding:8px 10px;border-radius:var(--radius-sm);font-size:.78rem;font-weight:600;background:var(--surface2);border:1px solid var(--border);transition:all .15s;text-align:left}
 .ex-chip:hover{border-color:var(--text3)}
 .ex-chip.selected{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.ex-chip.selected-blue{background:var(--blue-dim);border-color:var(--blue);color:var(--blue)}
 
 /* Set Row */
 .set-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border)}
@@ -83,6 +84,11 @@ header{display:flex;align-items:center;justify-content:space-between;padding:16p
 .timer-btn svg{width:16px;height:16px;stroke:#fff}
 .timer-type-toggle{font-size:.7rem;font-weight:600;color:var(--text3);padding:4px 8px;border-radius:4px;background:var(--surface2)}
 .timer-type-toggle.active{color:var(--accent);background:var(--accent-dim)}
+
+/* Timer presets */
+.timer-presets{display:flex;gap:3px;margin-left:4px}
+.timer-preset{padding:3px 7px;border-radius:4px;font-size:.62rem;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--text3);background:var(--surface2);border:1px solid var(--border);transition:all .12s;white-space:nowrap}
+.timer-preset:hover,.timer-preset:active{color:var(--accent);border-color:var(--accent);background:var(--accent-dim)}
 
 /* Plate Math Modal */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
@@ -160,6 +166,43 @@ header{display:flex;align-items:center;justify-content:space-between;padding:16p
 /* Hidden */
 .hidden{display:none!important}
 
+/* Body group label */
+.acc-group-label{font-size:.72rem;font-weight:700;color:var(--text2);letter-spacing:.5px;padding:8px 10px;margin-top:4px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;transition:all .12s}
+.acc-group-label:hover,.acc-group-label:active{border-color:var(--text3)}
+.acc-group-label .acc-arrow{font-size:.6rem;color:var(--text3);transition:transform .2s}
+.acc-group-label.open .acc-arrow{transform:rotate(90deg)}
+.acc-group-label .acc-count{font-size:.6rem;color:var(--accent);font-weight:700;margin-left:auto;margin-right:6px}
+.acc-group-grid{display:none;margin-bottom:4px}
+.acc-group-grid.open{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px;margin-bottom:8px}
+
+/* Circuit toggle */
+.circuit-toggle{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:var(--radius-sm);font-size:.72rem;font-weight:600;background:var(--surface2);border:1px solid var(--border);margin:6px 0 10px;cursor:pointer}
+.circuit-toggle.active{background:var(--blue-dim);border-color:var(--blue);color:var(--blue)}
+.circuit-toggle .tdot{width:10px;height:10px;border-radius:50%;border:2px solid var(--text3);transition:all .15s;flex-shrink:0}
+.circuit-toggle.active .tdot{background:var(--blue);border-color:var(--blue)}
+
+/* Scheme pills */
+.scheme-pills{display:flex;gap:3px}
+.scheme-pill{padding:2px 7px;border-radius:4px;font-size:.6rem;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--text3);background:var(--surface2);border:1px solid var(--border);cursor:pointer;text-transform:uppercase}
+.scheme-pill.active{color:var(--accent);border-color:var(--accent);background:var(--accent-dim)}
+
+/* Edit bar */
+.edit-bar{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap}
+
+/* Manual entry */
+.manual-entry{display:flex;gap:6px;margin-bottom:10px}
+.manual-entry input{font-size:.82rem;padding:6px 10px}
+
+/* Weekly progress bar */
+.weekly-progress{margin:10px 0 14px}
+.weekly-bar{height:8px;background:var(--surface3);border-radius:4px;overflow:hidden}
+.weekly-bar-fill{height:100%;border-radius:4px;transition:width .3s ease}
+.weekly-label{display:flex;justify-content:space-between;font-size:.68rem;color:var(--text3);margin-top:4px}
+
+/* Circuit round header */
+.circuit-round{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--blue);background:var(--blue-dim);padding:4px 10px;border-radius:4px;margin:8px 0 4px;display:flex;align-items:center;gap:6px}
+.circuit-round::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--blue)}
+
 /* Toast */
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--border);padding:10px 18px;border-radius:var(--radius);font-size:.82rem;font-weight:600;z-index:400;animation:fadeUp .3s ease;pointer-events:none}
 .toast.success{border-color:var(--green);color:var(--green)}
@@ -185,42 +228,56 @@ input[type=number]{-moz-appearance:textfield}
 // ============================
 const EXERCISES = {
   barbell: [
-    {id:'bb_bench',name:'Chest Press',type:'barbell'},
+    {id:'bb_bench',name:'Bench Press',type:'barbell'},
     {id:'bb_ohp',name:'Overhead Press',type:'barbell'},
+    {id:'bb_pushpress',name:'Push Press',type:'barbell'},
     {id:'bb_bsquat',name:'Back Squat',type:'barbell'},
     {id:'bb_fsquat',name:'Front Squat',type:'barbell'},
     {id:'bb_dead',name:'Deadlift',type:'barbell'},
     {id:'bb_clean',name:'Clean',type:'barbell'},
-    {id:'bb_row',name:'Row',type:'barbell'},
+    {id:'bb_row',name:'Barbell Row',type:'barbell'},
   ],
   bodyweight: [
-    {id:'bw_pushup',name:'Pushups',type:'bodyweight',noWeight:true},
-    {id:'bw_pullup',name:'Pull-ups',type:'bodyweight',noWeight:true},
-    {id:'bw_chinup',name:'Chin-ups',type:'bodyweight',optionalWeight:true},
-    {id:'bw_dip',name:'Dips',type:'bodyweight',optionalWeight:true},
-    {id:'bw_t2b',name:'Toes to Bar',type:'bodyweight',noWeight:true},
+    {id:'bw_pushup',name:'Pushups',type:'bodyweight',noWeight:true,group:'chest'},
+    {id:'bw_pullup',name:'Pull-ups',type:'bodyweight',optionalWeight:true,group:'back'},
+    {id:'bw_chinup',name:'Chin-ups',type:'bodyweight',optionalWeight:true,group:'back'},
+    {id:'bw_dip',name:'Dips',type:'bodyweight',optionalWeight:true,group:'chest'},
+    {id:'bw_t2b',name:'Toes to Bar',type:'bodyweight',noWeight:true,group:'abs'},
+    {id:'bw_hleg',name:'Hanging Leg Raise',type:'bodyweight',noWeight:true,group:'abs'},
+    {id:'bw_situp',name:'Sit-up',type:'bodyweight',optionalWeight:true,group:'abs'},
   ],
   dumbbell: [
-    {id:'db_press',name:'Shoulder Press',type:'dumbbell'},
-    {id:'db_row',name:'Row',type:'dumbbell'},
-    {id:'db_curl',name:'Curl',type:'dumbbell'},
-    {id:'db_tri',name:'Tricep Overhead',type:'dumbbell'},
-    {id:'db_split',name:'Split Squat',type:'dumbbell'},
-    {id:'db_lunge',name:'Lunges',type:'dumbbell'},
-    {id:'db_rdl',name:'Romanian Deadlift',type:'dumbbell'},
-    {id:'db_goblet',name:'Goblet Squat',type:'dumbbell'},
+    {id:'db_press',name:'DB Shoulder Press',type:'dumbbell',group:'shoulders'},
+    {id:'db_latrl',name:'Lateral Raise',type:'dumbbell',optionalWeight:true,group:'shoulders'},
+    {id:'db_arnold',name:'Arnold Press',type:'dumbbell',group:'shoulders'},
+    {id:'db_reardelt',name:'Rear Delt Raise',type:'dumbbell',group:'shoulders'},
+    {id:'db_incbp',name:'Incline DB Press',type:'dumbbell',group:'chest'},
+    {id:'db_row',name:'Dumbbell Row',type:'dumbbell',group:'back'},
+    {id:'db_curl',name:'Curl',type:'dumbbell',group:'arms'},
+    {id:'db_hammer',name:'Hammer Curl',type:'dumbbell',group:'arms'},
+    {id:'db_tri',name:'Tricep Overhead',type:'dumbbell',group:'arms'},
+    {id:'db_split',name:'Split Squat',type:'dumbbell',group:'legs'},
+    {id:'db_lunge',name:'Lunges',type:'dumbbell',group:'legs'},
+    {id:'db_rdl',name:'Romanian Deadlift',type:'dumbbell',group:'legs'},
+    {id:'db_goblet',name:'Goblet Squat',type:'dumbbell',group:'legs'},
   ],
   machine: [
-    {id:'mc_legext',name:'Leg Extension',type:'machine'},
-    {id:'mc_triext',name:'Tricep Extension',type:'machine'},
-    {id:'mc_latpull',name:'Lat Pull Down',type:'machine'},
-    {id:'mc_seatrow',name:'Seated Row',type:'machine'},
+    {id:'mc_legext',name:'Leg Extension',type:'machine',group:'legs'},
+    {id:'mc_triext',name:'Tricep Extension',type:'machine',group:'arms'},
+    {id:'mc_latpull',name:'Lat Pull Down',type:'machine',group:'back'},
+    {id:'mc_seatrow',name:'Seated Row',type:'machine',group:'back'},
+    {id:'mc_cablerow',name:'Cable Row',type:'machine',group:'back'},
+    {id:'mc_press',name:'Machine Press',type:'machine',group:'chest'},
+    {id:'mc_hack',name:'Hack Squat',type:'machine',group:'legs'},
+    {id:'mc_abwheel',name:'Ab Wheel Rollout',type:'machine',noWeight:true,group:'abs'},
   ],
   cardio: [
     {id:'cd_burpee',name:'Burpees',type:'cardio',noWeight:true,isCardio:true},
     {id:'cd_g2oh',name:'KB/DB Ground to OH',type:'cardio',isCardio:true},
+    {id:'cd_kbswing',name:'KB Swing',type:'cardio',isCardio:true},
     {id:'cd_row',name:'Rowing',type:'cardio',noWeight:true,isCardio:true,timedOnly:true},
     {id:'cd_bike',name:'Assault/Echo Bike',type:'cardio',noWeight:true,isCardio:true,timedOnly:true},
+    {id:'cd_run',name:'Run',type:'cardio',noWeight:true,isCardio:true,timedOnly:true},
   ],
 };
 
@@ -237,6 +294,8 @@ let state = {
   workout: null, // current workout session
   building: true, // in build mode
   selectedExercises: {primary:[],accessory:[],cardio:[]},
+  accessoryCircuit: true,
+  weeklyGoal: 3,
   history: JSON.parse(localStorage.getItem('ironlog_history')||'[]'),
   sheetConnected: false,
   syncing: false,
@@ -356,108 +415,135 @@ async function fetchMonthlyProgress() {
 // ============================
 // TIMER (using Web Worker for background)
 // ============================
-// Audio ding for timer completion
+// Audio ding for timer completion (mobile-compatible)
 let audioCtx = null;
+
+// Pre-warm AudioContext on first user interaction (required for mobile Safari)
+function ensureAudioCtx() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+  return audioCtx;
+}
+
+// Warm up on first touch/click
+document.addEventListener('touchstart', ensureAudioCtx, {once: true});
+document.addEventListener('click', ensureAudioCtx, {once: true});
+
 function playDing() {
   try {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    // Play two-tone ding
-    [880, 1108.73].forEach((freq, i) => {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
+    const ctx = ensureAudioCtx();
+    // Louder, longer three-tone chime for mobile
+    var freqs = [659.25, 830.61, 987.77]; // E5, G#5, B5 — major chord
+    freqs.forEach(function(freq, i) {
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
       osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.type = 'sine';
+      gain.connect(ctx.destination);
+      osc.type = 'triangle';
       osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0.3, audioCtx.currentTime + i * 0.15);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.15 + 0.6);
-      osc.start(audioCtx.currentTime + i * 0.15);
-      osc.stop(audioCtx.currentTime + i * 0.15 + 0.6);
+      var startAt = ctx.currentTime + i * 0.18;
+      gain.gain.setValueAtTime(0.5, startAt);
+      gain.gain.exponentialRampToValueAtTime(0.01, startAt + 0.8);
+      osc.start(startAt);
+      osc.stop(startAt + 0.8);
     });
+    // Extra low tone for weight
+    var bass = ctx.createOscillator();
+    var bassGain = ctx.createGain();
+    bass.connect(bassGain);
+    bassGain.connect(ctx.destination);
+    bass.type = 'sine';
+    bass.frequency.value = 329.63; // E4
+    bassGain.gain.setValueAtTime(0.4, ctx.currentTime);
+    bassGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.2);
+    bass.start(ctx.currentTime);
+    bass.stop(ctx.currentTime + 1.2);
   } catch(e) { console.warn('Audio ding failed:', e); }
 }
 
-function createTimerWorker() {
-  const blob = new Blob([`
-    let interval = null;
-    let seconds = 0;
-    let total = 120;
-    self.onmessage = function(e) {
-      const {cmd, value} = e.data;
-      if (cmd === 'start') {
-        seconds = value.seconds;
-        total = value.total;
-        clearInterval(interval);
-        interval = setInterval(() => {
-          seconds++;
-          self.postMessage({seconds, total});
-          if (total > 0 && seconds >= total) {
-            clearInterval(interval);
-            self.postMessage({seconds, total, done: true});
-          }
-        }, 1000);
-      } else if (cmd === 'stop') {
-        clearInterval(interval);
-      } else if (cmd === 'reset') {
-        clearInterval(interval);
-        seconds = 0;
-        self.postMessage({seconds: 0, total});
-      }
-    };
-  `], {type:'application/javascript'});
-  return new Worker(URL.createObjectURL(blob));
-}
+// ============================
+// TIMER — wall-clock based for mobile accuracy
+// ============================
+// Instead of counting setInterval ticks (which drift when backgrounded),
+// we store the startTime and compute elapsed from Date.now() each tick.
+// When the tab regains focus, it instantly catches up.
 
-// Targeted timer DOM update — avoids full re-render blink
-function updateTimerDOM() {
-  const t = state.timer;
-  const fmtTime = (s) => {
-    const m = Math.floor(s/60);
-    const sec = s % 60;
-    return `${m}:${String(sec).padStart(2,'0')}`;
-  };
-  const isCountUp = t.type === 'cardio';
-  const display = isCountUp ? fmtTime(t.seconds) : fmtTime(Math.max(0, t.total - t.seconds));
-  const pct = isCountUp ? 0 : Math.min(100, (t.seconds / t.total) * 100);
-  const remaining = t.total - t.seconds;
-  const timerClass = 'timer-display' + (!t.running ? '' : remaining <= 0 ? ' ready' : remaining <= 10 ? ' warning' : '');
-
-  const displayEl = document.querySelector('.timer-display');
-  const fillEl = document.querySelector('.timer-progress-fill');
-  if (displayEl) {
-    displayEl.textContent = display;
-    displayEl.className = timerClass;
-  }
-  if (fillEl) fillEl.style.width = pct + '%';
-}
+let _timerRAF = null;
+let _timerInterval = null;
 
 function startTimer(type='rest', duration=null) {
-  if (state.timer.worker) state.timer.worker.terminate();
+  cancelTimerTick();
   const total = duration || (type==='rest' ? state.restDuration : 0);
-  const worker = createTimerWorker();
-  worker.onmessage = (e) => {
-    state.timer.seconds = e.data.seconds;
-    state.timer.total = e.data.total;
-    if (e.data.done && type === 'rest') {
+  const startTime = Date.now();
+
+  state.timer = {
+    running: true,
+    seconds: 0,
+    total: total,
+    type: type,
+    startTime: startTime,
+    worker: null,
+    interval: null,
+  };
+
+  // Warm audio context so it's ready when timer ends
+  ensureAudioCtx();
+
+  function tick() {
+    if (!state.timer.running) return;
+    var elapsed = Math.floor((Date.now() - state.timer.startTime) / 1000);
+    state.timer.seconds = elapsed;
+
+    if (type === 'rest' && total > 0 && elapsed >= total && !state.timer._dinged) {
+      state.timer._dinged = true;
+      state.timer.running = false;
       playDing();
       if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('Lift Tracker', {body:'Rest complete — get after it!'});
+        new Notification('Lift Tracker', {body: 'Rest complete — get after it!'});
       }
-      try { navigator.vibrate?.([200,100,200]); } catch(e){}
-      // Full re-render only on completion to update button state
-      render();
+      try { navigator.vibrate?.([200, 100, 200, 100, 200]); } catch(e) {}
+      updateTimerDOM();
+      // Update controls to show play button
+      var controls = document.querySelector('.timer-controls');
+      if (controls) {
+        controls.innerHTML =
+          '<button class="timer-btn primary" id="timerStart"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="5,3 19,12 5,21"/></svg></button>' +
+          '<button class="timer-btn" id="timerReset"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>';
+        document.getElementById('timerStart')?.addEventListener('click', function() {
+          startTimer(state.timer.type, state.timer.type === 'rest' ? state.restDuration : 0);
+        });
+        document.getElementById('timerReset')?.addEventListener('click', resetTimer);
+      }
       return;
     }
-    // Targeted update — no full DOM rebuild
+
     updateTimerDOM();
-  };
-  worker.postMessage({cmd:'start', value:{seconds:0, total}});
-  state.timer = {running:true, seconds:0, total, type, interval:null, worker};
+    _timerInterval = setTimeout(tick, 250); // Check 4x/sec for snappy catch-up
+  }
+
   render();
+  tick();
 }
 
+function cancelTimerTick() {
+  if (_timerInterval) { clearTimeout(_timerInterval); _timerInterval = null; }
+}
+
+// Also catch up immediately when tab regains focus
+document.addEventListener('visibilitychange', function() {
+  if (!document.hidden && state.timer.running && state.timer.startTime) {
+    var elapsed = Math.floor((Date.now() - state.timer.startTime) / 1000);
+    state.timer.seconds = elapsed;
+    updateTimerDOM();
+  }
+});
+
 function stopTimer() {
-  if (state.timer.worker) state.timer.worker.terminate();
+  cancelTimerTick();
   state.timer.running = false;
   state.timer.worker = null;
   // Targeted update — swap pause button to play button
@@ -467,7 +553,6 @@ function stopTimer() {
       <button class="timer-btn primary" id="timerStart"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="5,3 19,12 5,21"/></svg></button>
       <button class="timer-btn" id="timerReset"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>
     `;
-    // Re-bind just the timer buttons
     document.getElementById('timerStart')?.addEventListener('click', () => {
       startTimer(state.timer.type, state.timer.type==='rest'?state.restDuration:0);
     });
@@ -476,11 +561,11 @@ function stopTimer() {
 }
 
 function resetTimer() {
-  if (state.timer.worker) state.timer.worker.terminate();
+  cancelTimerTick();
   state.timer.running = false;
   state.timer.worker = null;
   state.timer.seconds = 0;
-  // Update display directly
+  state.timer._dinged = false;
   updateTimerDOM();
   const controls = document.querySelector('.timer-controls');
   if (controls) {
@@ -493,6 +578,29 @@ function resetTimer() {
     });
     document.getElementById('timerReset')?.addEventListener('click', resetTimer);
   }
+}
+
+// Targeted timer DOM update — avoids full re-render blink
+function updateTimerDOM() {
+  const t = state.timer;
+  const fmtTime = (s) => {
+    const m = Math.floor(s/60);
+    const sec = s % 60;
+    return `${m}:${String(sec).padStart(2,'0')}`;
+  };
+  const isCountUp = t.type === 'cardio';
+  const display = isCountUp ? fmtTime(t.seconds) : fmtTime(Math.max(0, t.total - t.seconds));
+  const pct = isCountUp ? 0 : (t.total > 0 ? Math.min(100, (t.seconds / t.total) * 100) : 0);
+  const remaining = t.total - t.seconds;
+  const timerClass = 'timer-display' + (!t.running ? '' : remaining <= 0 ? ' ready' : remaining <= 10 ? ' warning' : '');
+
+  const displayEl = document.querySelector('.timer-display');
+  const fillEl = document.querySelector('.timer-progress-fill');
+  if (displayEl) {
+    displayEl.textContent = display;
+    displayEl.className = timerClass;
+  }
+  if (fillEl) fillEl.style.width = pct + '%';
 }
 
 // Request notification permission
@@ -548,6 +656,12 @@ function suggestWeight(exerciseId) {
 // ============================
 function saveWorkout() {
   if (!state.workout) return;
+  // Cancel any running timer
+  cancelTimerTick();
+  state.timer.running = false;
+  state.timer.seconds = 0;
+  state.timer._dinged = false;
+
   const now = new Date();
   const dateOnly = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
   const record = {
@@ -614,8 +728,8 @@ function render() {
   // After first render, suppress fade animation to avoid blink
   const fadeClass = _rendered ? '' : 'fade-up';
   const html = `
-    ${renderHeader()}
     <div class="app">
+      ${renderHeader()}
       ${state.view === 'workout' ? renderWorkout() : ''}
       ${state.view === 'history' ? renderHistory() : ''}
       ${state.view === 'settings' ? renderSettings() : ''}
@@ -643,7 +757,7 @@ function render() {
 }
 
 function renderHeader() {
-  return `<div class="app"><header>
+  return `<header>
     <div class="logo">LIFT<span>TRACKER</span></div>
     <div class="header-actions">
       <div class="sync-status">
@@ -660,7 +774,7 @@ function renderHeader() {
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
       </button>
     </div>
-  </header></div>`;
+  </header>`;
 }
 
 function renderWorkout() {
@@ -673,28 +787,49 @@ function renderWorkout() {
 // ============================
 function renderBuilder() {
   const sel = state.selectedExercises;
+  const allAcc = [...EXERCISES.bodyweight,...EXERCISES.dumbbell,...EXERCISES.machine];
+  const groupOrder = ['back','shoulders','chest','arms','legs','abs'];
+  const groupLabels = {back:'Back',shoulders:'Shoulders',chest:'Chest',arms:'Arms',legs:'Legs',abs:'Abs'};
+  const grouped = {};
+  groupOrder.forEach(g => grouped[g] = []);
+  allAcc.forEach(ex => { if (ex.group && grouped[ex.group]) grouped[ex.group].push(ex); });
+
   return `
     <div class="card fade-up">
       <div class="card-title"><div class="dot"></div>BUILD YOUR WORKOUT</div>
 
-      <div class="section-header">SECTION 1 — PRIMARY LIFTS (2-3)</div>
+      <div class="section-header">SECTION 1 — PRIMARY LIFTS</div>
       <div class="exercise-grid">
-        ${[...EXERCISES.barbell].map(ex => `
+        ${EXERCISES.barbell.map(ex => `
           <button class="ex-chip ${sel.primary.includes(ex.id)?'selected':''}" data-section="primary" data-id="${ex.id}">
             ${ex.name}
           </button>
         `).join('')}
       </div>
 
-      <div class="section-header">SECTION 2 — ACCESSORIES (3-4)</div>
-      <div class="exercise-grid">
-        ${[...EXERCISES.bodyweight,...EXERCISES.dumbbell,...EXERCISES.machine].map(ex => `
-          <button class="ex-chip ${sel.accessory.includes(ex.id)?'selected':''}" data-section="accessory" data-id="${ex.id}">
-            <span style="font-size:.6rem;color:var(--text3);display:block;margin-bottom:1px">${ex.type.toUpperCase()}</span>
-            ${ex.name}
-          </button>
-        `).join('')}
+      <div class="section-header">SECTION 2 — ACCESSORIES</div>
+      <div class="exercise-grid" style="margin-bottom:10px">
+        <button class="ex-chip ${!state.accessoryCircuit?'selected-blue':''}" id="modeIndividual">Individual</button>
+        <button class="ex-chip ${state.accessoryCircuit?'selected-blue':''}" id="modeCircuit">Circuit</button>
       </div>
+      ${groupOrder.map(g => {
+        if (grouped[g].length === 0) return '';
+        const selectedCount = grouped[g].filter(ex => sel.accessory.includes(ex.id)).length;
+        return `
+        <div class="acc-group-label" data-accgroup="${g}">
+          ${groupLabels[g]}
+          ${selectedCount > 0 ? '<span class="acc-count">'+selectedCount+'</span>' : ''}
+          <span class="acc-arrow">▶</span>
+        </div>
+        <div class="acc-group-grid" data-accgrid="${g}">
+          ${grouped[g].map(ex => `
+            <button class="ex-chip ${sel.accessory.includes(ex.id)?'selected':''}" data-section="accessory" data-id="${ex.id}">
+              <span style="font-size:.55rem;color:var(--text3);display:block;margin-bottom:1px">${ex.type.toUpperCase()}</span>
+              ${ex.name}
+            </button>
+          `).join('')}
+        </div>
+      `;}).join('')}
 
       <div class="section-header">SECTION 3 — CARDIO</div>
       <div class="exercise-grid">
@@ -725,18 +860,71 @@ function renderActiveWorkout() {
     ex.sets.forEach(s => { if(s.done) totalVol += (s.weight||0)*(s.reps||0); });
   });
 
+  const primaries = w.exercises.filter(ex => ex.section === 'primary');
+  const accessories = w.exercises.filter(ex => ex.section === 'accessory');
+  const cardios = w.exercises.filter(ex => ex.section === 'cardio');
+  const hasCircuit = accessories.length > 0 && accessories[0]?.isCircuit;
+
   return `
     <div class="fade-up">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1px;color:var(--text2)">
-          ACTIVE SESSION
-        </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1px;color:var(--text2)">ACTIVE SESSION</div>
         <div class="volume-badge">VOL: ${totalVol.toLocaleString()} lbs</div>
       </div>
 
-      ${w.exercises.map((ex, ei) => renderExerciseCard(ex, ei)).join('')}
+      ${primaries.map(ex => renderExerciseCard(ex, w.exercises.indexOf(ex))).join('')}
 
-      <div style="display:flex;gap:8px;margin-top:16px">
+      ${hasCircuit && accessories.length > 0 ? renderCircuitBlock(accessories, w) : accessories.map(ex => renderExerciseCard(ex, w.exercises.indexOf(ex))).join('')}
+
+      ${cardios.map(ex => renderExerciseCard(ex, w.exercises.indexOf(ex))).join('')}
+
+      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+        <button class="btn btn-secondary btn-sm" id="addExerciseBtn">+ Add</button>
+        <button class="btn btn-secondary btn-sm" id="addManualBtn">\u270e Custom</button>
+        <button class="btn btn-secondary btn-sm" id="editModeBtn" style="margin-left:auto">\u2699 Edit</button>
+      </div>
+
+      <div id="addExercisePanel" class="hidden" style="margin-top:8px">
+        <div class="card" style="padding:10px">
+          <div style="font-size:.7rem;font-weight:600;color:var(--text3);margin-bottom:5px">ADD EXERCISE</div>
+          <select id="addExSelect" style="margin-bottom:6px">
+            <option value="">Select exercise...</option>
+            <optgroup label="Barbell">${EXERCISES.barbell.map(e=>'<option value="'+e.id+'">'+e.name+'</option>').join('')}</optgroup>
+            <optgroup label="Bodyweight">${EXERCISES.bodyweight.map(e=>'<option value="'+e.id+'">'+e.name+'</option>').join('')}</optgroup>
+            <optgroup label="Dumbbell">${EXERCISES.dumbbell.map(e=>'<option value="'+e.id+'">'+e.name+'</option>').join('')}</optgroup>
+            <optgroup label="Machine">${EXERCISES.machine.map(e=>'<option value="'+e.id+'">'+e.name+'</option>').join('')}</optgroup>
+            <optgroup label="Cardio">${EXERCISES.cardio.map(e=>'<option value="'+e.id+'">'+e.name+'</option>').join('')}</optgroup>
+          </select>
+          <div style="display:flex;gap:5px">
+            <button class="btn btn-primary btn-sm" id="addExConfirm">Add</button>
+            <button class="btn btn-secondary btn-sm" id="addExClose">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="manualEntryBox" class="hidden" style="margin-top:8px">
+        <div class="manual-entry">
+          <input type="text" id="manualExName" placeholder="Exercise name">
+          <button class="btn btn-primary btn-sm" id="manualExAdd">Add</button>
+          <button class="btn btn-secondary btn-sm" id="manualExCancel">\u2715</button>
+        </div>
+      </div>
+
+      <div id="editModePanel" class="hidden" style="margin-top:8px">
+        <div class="card" style="padding:10px;border-color:var(--yellow)">
+          <div style="font-size:.7rem;font-weight:600;color:var(--yellow);margin-bottom:6px">REORDER / REMOVE</div>
+          ${w.exercises.map((ex, ei) => `
+            <div style="display:flex;align-items:center;gap:4px;padding:5px 0;border-bottom:1px solid var(--border)">
+              <span style="font-size:.78rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ex.name}</span>
+              ${ei > 0 ? '<button class="btn btn-secondary btn-sm" data-moveup="'+ei+'" style="padding:2px 6px;font-size:.65rem">\u2191</button>' : '<span style="width:24px"></span>'}
+              ${ei < w.exercises.length - 1 ? '<button class="btn btn-secondary btn-sm" data-movedown="'+ei+'" style="padding:2px 6px;font-size:.65rem">\u2193</button>' : '<span style="width:24px"></span>'}
+              <button class="btn btn-secondary btn-sm" data-removeex="${ei}" style="padding:2px 6px;font-size:.65rem;color:var(--red)">\u2715</button>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:12px">
         <button class="btn btn-primary" style="flex:1" id="finishWorkout">FINISH & SAVE</button>
         <button class="btn btn-secondary" id="cancelWorkout">CANCEL</button>
       </div>
@@ -744,59 +932,136 @@ function renderActiveWorkout() {
   `;
 }
 
-function renderExerciseCard(ex, ei) {
-  const exDef = getExercise(ex.id);
-  const prev = getPreviousSession(ex.id);
-  const suggested = suggestWeight(ex.id);
-  const isTimedCardio = exDef?.timedOnly;
-  const showWeight = !exDef?.noWeight || exDef?.optionalWeight;
+// ============================
+// CIRCUIT BLOCK — groups accessories into rounds
+// ============================
+function renderCircuitBlock(accessories, w) {
+  if (accessories.length === 0) return '';
+  const numRounds = accessories[0]?.sets?.length || 3;
+  let html = '<div class="card" style="border-color:var(--blue)">';
+  html += '<div class="card-title"><div class="dot" style="background:var(--blue)"></div>CIRCUIT<span style="margin-left:auto;font-size:.72rem;color:var(--text3);font-weight:400">' + numRounds + ' round' + (numRounds !== 1 ? 's' : '') + '</span></div>';
 
-  let exVol = 0;
-  ex.sets.forEach(s => { if(s.done) exVol += (s.weight||0)*(s.reps||0); });
+  for (let round = 0; round < numRounds; round++) {
+    html += '<div class="circuit-round">ROUND ' + (round + 1) + '</div>';
+    accessories.forEach(function(ex) {
+      var ei = w.exercises.indexOf(ex);
+      var exDef = getExercise(ex.id);
+      var set = ex.sets[round] || {weight:0,reps:0,done:false,duration:0};
+      var showWeight = !(exDef?.noWeight || ex.noWeight) || exDef?.optionalWeight || ex.optionalWeight;
+      var isTimedCardio = exDef?.timedOnly || ex.timedOnly;
+
+      html += '<div class="set-row"><div class="set-info">';
+      html += '<div class="set-label" style="color:var(--text)">' + ex.name + '</div>';
+      html += '<div class="set-inputs">';
+      if (isTimedCardio) {
+        html += '<input type="number" placeholder="sec" value="' + (set.duration || '') + '" data-field="duration" data-ei="' + ei + '" data-si="' + round + '" inputmode="numeric"><span class="unit">sec</span>';
+      } else {
+        if (showWeight) {
+          html += '<input type="number" placeholder="lbs" value="' + (set.weight || '') + '" data-field="weight" data-ei="' + ei + '" data-si="' + round + '" inputmode="decimal"><span class="unit">lbs</span>';
+        }
+        html += '<input type="number" placeholder="reps" value="' + (set.reps || '') + '" data-field="reps" data-ei="' + ei + '" data-si="' + round + '" inputmode="numeric"><span class="unit">reps</span>';
+      }
+      html += '</div></div>';
+      html += '<button class="set-check ' + (set.done ? 'done' : '') + '" data-ei="' + ei + '" data-si="' + round + '"><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></button>';
+      html += '</div>';
+    });
+    html += '<div style="text-align:center;padding:4px 0;font-size:.65rem;color:var(--text3);font-family:\'JetBrains Mono\',monospace">\u23f1 rest</div>';
+  }
+
+  html += '<div style="display:flex;gap:6px;margin-top:8px">';
+  html += '<button class="btn btn-secondary btn-sm" id="addCircuitRound">+ Round</button>';
+  if (numRounds > 1) html += '<button class="btn btn-secondary btn-sm" id="removeCircuitRound">\u2212 Round</button>';
+  html += '</div>';
+  html += '</div>';
+  return html;
+}
+
+// ============================
+// PYRAMID / DROP SCHEME HELPERS
+// ============================
+function applyScheme(ex, scheme, baseWeight) {
+  var x = baseWeight || ex.sets[0]?.weight || 100;
+  var n = ex.sets.length;
+  var r5 = function(v) { return Math.round(v / 5) * 5; };
+
+  if (scheme === 'pyramid') {
+    // Fixed pattern: x, x+10%, x+20%, x+10%, x (for 5 sets)
+    // Adapt to any set count: ramp up to middle, back down
+    var pcts = [];
+    var mid = Math.floor(n / 2);
+    for (var i = 0; i < n; i++) {
+      if (i <= mid) pcts.push(i * 0.1);      // 0%, 10%, 20%...
+      else pcts.push((n - 1 - i) * 0.1);     // ...10%, 0%
+    }
+    ex.sets.forEach(function(s, i) {
+      s.weight = r5(x * (1 + pcts[i]));
+      // Reps: higher weight = fewer reps
+      if (i === n - 1) { s.repLabel = 'max'; s.targetReps = 0; }
+      else { s.repLabel = ''; s.targetReps = 0; }
+    });
+  } else if (scheme === 'drop') {
+    // x, x-10%, x-20%, x-30%...
+    ex.sets.forEach(function(s, i) {
+      s.weight = r5(x * (1 - i * 0.1));
+      if (i === n - 1) { s.repLabel = 'max'; s.targetReps = 0; }
+      else { s.repLabel = ''; s.targetReps = 0; }
+    });
+  } else {
+    ex.sets.forEach(function(s) { s.repLabel = ''; s.targetReps = 0; });
+  }
+  ex.scheme = scheme;
+}
+
+// ============================
+// EXERCISE CARD (non-circuit)
+// ============================
+function renderExerciseCard(ex, ei) {
+  var exDef = getExercise(ex.id);
+  var prev = ex.isManual ? null : getPreviousSession(ex.id);
+  var suggested = ex.isManual ? 0 : suggestWeight(ex.id);
+  var isTimedCardio = exDef?.timedOnly || ex.timedOnly;
+  var isBWopt = (exDef?.optionalWeight || ex.optionalWeight) && (exDef?.type === 'bodyweight');
+  var showWeight = !(exDef?.noWeight || ex.noWeight) || exDef?.optionalWeight || ex.optionalWeight;
+  var scheme = ex.scheme || 'straight';
+
+  var exVol = 0;
+  ex.sets.forEach(function(s) { if(s.done) exVol += (s.weight||0)*(s.reps||0); });
 
   return `
     <div class="card">
       <div class="card-title">
         <div class="dot" style="background:${ex.section==='primary'?'var(--accent)':ex.section==='accessory'?'var(--blue)':'var(--green)'}"></div>
         ${ex.name}
-        ${!isTimedCardio && exVol > 0 ? `<div class="volume-badge">${exVol.toLocaleString()}</div>` : ''}
-        ${exDef?.type==='barbell' ? `<button class="icon-btn" style="width:28px;height:28px;margin-left:4px" data-platemath="${ei}"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" style="width:14px;height:14px"><rect x="2" y="6" width="4" height="12" rx="1"/><rect x="18" y="6" width="4" height="12" rx="1"/><line x1="6" y1="12" x2="18" y2="12"/></svg></button>` : ''}
+        ${!isTimedCardio && exVol > 0 ? '<div class="volume-badge">'+exVol.toLocaleString()+'</div>' : ''}
+        ${exDef?.type==='barbell' ? '<button class="icon-btn" style="width:28px;height:28px;margin-left:4px" data-platemath="'+ei+'"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" style="width:14px;height:14px"><rect x="2" y="6" width="4" height="12" rx="1"/><rect x="18" y="6" width="4" height="12" rx="1"/><line x1="6" y1="12" x2="18" y2="12"/></svg></button>' : ''}
       </div>
-
-      ${prev ? `<div class="prev-info">Previous: <span>${prev.sets.map(s=>isTimedCardio?`${s.duration||0}s`:`${s.weight||0}×${s.reps||0}`).join(', ')}</span></div>` : '<div class="prev-info">No previous data</div>'}
-
-      ${ex.sets.map((set, si) => `
+      ${!isTimedCardio && showWeight && !isBWopt ? `<div class="scheme-pills" style="margin-bottom:6px">
+        <button class="scheme-pill ${scheme==='straight'?'active':''}" data-scheme="straight" data-schemeei="${ei}">Straight</button>
+        <button class="scheme-pill ${scheme==='pyramid'?'active':''}" data-scheme="pyramid" data-schemeei="${ei}">Pyramid</button>
+        <button class="scheme-pill ${scheme==='drop'?'active':''}" data-scheme="drop" data-schemeei="${ei}">Drop</button>
+      </div>` : ''}
+      ${prev ? '<div class="prev-info">Previous: <span>'+prev.sets.map(function(s){return isTimedCardio?(s.duration||0)+'s':((isBWopt && !s.weight)?'BW':((isBWopt?'BW+':'')+s.weight))+'\u00d7'+(s.reps||0);}).join(', ')+'</span></div>' : '<div class="prev-info">No previous data</div>'}
+      ${ex.sets.map(function(set, si) { return `
         <div class="set-row">
           <div class="set-info">
-            <div class="set-label">SET ${si+1}</div>
+            <div class="set-label">SET ${si+1}${set.repLabel ? ' \u00b7 '+set.repLabel : ''}${isBWopt ? (set.weight ? ' \u00b7 BW+'+set.weight : ' \u00b7 BW') : ''}</div>
             <div class="set-inputs">
-              ${isTimedCardio ? `
-                <input type="number" placeholder="sec" value="${set.duration||''}" data-field="duration" data-ei="${ei}" data-si="${si}" inputmode="numeric">
-                <span class="unit">sec</span>
-              ` : `
-                ${showWeight ? `
-                  <input type="number" placeholder="${suggested||'lbs'}" value="${set.weight||''}" data-field="weight" data-ei="${ei}" data-si="${si}" inputmode="decimal">
-                  <span class="unit">lbs</span>
-                ` : ''}
-                <input type="number" placeholder="reps" value="${set.reps||''}" data-field="reps" data-ei="${ei}" data-si="${si}" inputmode="numeric">
-                <span class="unit">reps</span>
-              `}
+              ${isTimedCardio ? `<input type="number" placeholder="sec" value="${set.duration||''}" data-field="duration" data-ei="${ei}" data-si="${si}" inputmode="numeric"><span class="unit">sec</span>` : `${showWeight ? `<input type="number" placeholder="${isBWopt ? '+lbs' : (suggested||'lbs')}" value="${set.weight||''}" data-field="weight" data-ei="${ei}" data-si="${si}" inputmode="decimal"><span class="unit">${isBWopt ? 'added' : 'lbs'}</span>` : ''}<input type="number" placeholder="${set.targetReps||'reps'}" value="${set.reps||''}" data-field="reps" data-ei="${ei}" data-si="${si}" inputmode="numeric"><span class="unit">${set.repLabel||'reps'}</span>`}
             </div>
-            ${!isTimedCardio && suggested && !set.weight ? `<div class="prev-info">Suggested: <span>${suggested} lbs</span></div>` : ''}
           </div>
           <button class="set-check ${set.done?'done':''}" data-ei="${ei}" data-si="${si}">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
           </button>
         </div>
-      `).join('')}
-
+      `;}).join('')}
       <div style="display:flex;gap:6px;margin-top:8px">
         <button class="btn btn-secondary btn-sm" data-addset="${ei}">+ Set</button>
-        ${ex.sets.length > 1 ? `<button class="btn btn-secondary btn-sm" data-removeset="${ei}">− Set</button>` : ''}
+        ${ex.sets.length > 1 ? '<button class="btn btn-secondary btn-sm" data-removeset="'+ei+'">\u2212 Set</button>' : ''}
       </div>
     </div>
   `;
 }
+
 
 // ============================
 // HISTORY VIEW
@@ -848,8 +1113,33 @@ function renderMonthlyProgress() {
     </div>`;
   }
 
+  // Weekly progress bar (from local history)
+  const now = new Date();
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - now.getDay()); // Sunday
+  weekStart.setHours(0,0,0,0);
+  const daysThisWeek = new Set();
+  state.history.forEach(w => {
+    const d = new Date(w.date + 'T12:00:00');
+    if (d >= weekStart) daysThisWeek.add(w.date);
+  });
+  const weekCount = daysThisWeek.size;
+  const weekPct = Math.min(100, Math.round((weekCount / state.weeklyGoal) * 100));
+  const barColor = weekCount >= state.weeklyGoal ? 'var(--green)' : weekCount >= 2 ? 'var(--yellow)' : 'var(--accent)';
+
+  const weeklyBar = `
+    <div class="weekly-progress">
+      <div style="font-size:.72rem;font-weight:600;color:var(--text2);margin-bottom:4px">This Week</div>
+      <div class="weekly-bar"><div class="weekly-bar-fill" style="width:${weekPct}%;background:${barColor}"></div></div>
+      <div class="weekly-label">
+        <span>${weekCount} of ${state.weeklyGoal} days</span>
+        <span>${weekCount >= state.weeklyGoal ? '✓ Goal reached!' : (state.weeklyGoal - weekCount) + ' more to go'}</span>
+      </div>
+    </div>
+  `;
+
   if (!state.monthlyProgress || state.monthlyProgress.length === 0) {
-    return `<div class="card">
+    return `${weeklyBar}<div class="card">
       <div class="card-title">NO MONTHLY DATA YET</div>
       <p style="color:var(--text2);font-size:.85rem;margin-bottom:10px">Monthly progress is read from your Google Sheet. Complete and sync a few workouts to see trends here.</p>
       <button class="btn btn-primary btn-sm" id="refreshProgress">Load from Sheet</button>
@@ -859,24 +1149,35 @@ function renderMonthlyProgress() {
   // Group by month, newest first
   const byMonth = {};
   state.monthlyProgress.forEach(row => {
-    const month = row['Month'] || row['month'] || 'Unknown';
+    let month = row['Month'] || row['month'] || 'Unknown';
+    // Fix date objects or code strings — extract readable month
+    if (month instanceof Date || (typeof month === 'string' && month.match(/^\d{4}-\d{2}/))) {
+      const d = new Date(month);
+      if (!isNaN(d)) {
+        const mNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        month = mNames[d.getMonth()] + ' ' + d.getFullYear();
+      }
+    }
+    if (typeof month === 'object' && month !== null) {
+      try { month = String(month); } catch(e) { month = 'Unknown'; }
+    }
     if (!byMonth[month]) byMonth[month] = [];
     byMonth[month].push(row);
   });
 
-  // Sort months newest first
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const monthKeys = Object.keys(byMonth).sort((a, b) => {
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const parseMonth = (s) => {
       const parts = s.split(' ');
-      const mi = months.indexOf(parts[0]);
+      const mi = monthNames.indexOf(parts[0]);
       const yr = parseInt(parts[1]) || 2025;
-      return yr * 12 + mi;
+      return yr * 12 + (mi >= 0 ? mi : 0);
     };
     return parseMonth(b) - parseMonth(a);
   });
 
   return `
+    ${weeklyBar}
     <div style="margin-bottom:8px">
       <button class="btn btn-secondary btn-sm" id="refreshProgress" style="width:100%">
         <span style="font-size:.7rem">↻</span> Refresh from Sheet
@@ -997,25 +1298,38 @@ function renderTimerBar() {
   };
   const isCountUp = t.type === 'cardio';
   const display = isCountUp ? fmtTime(t.seconds) : fmtTime(Math.max(0, t.total - t.seconds));
-  const pct = isCountUp ? 0 : Math.min(100, (t.seconds / t.total) * 100);
+  const pct = isCountUp ? 0 : (t.total > 0 ? Math.min(100, (t.seconds / t.total) * 100) : 0);
   const remaining = t.total - t.seconds;
   const timerClass = !t.running ? '' : remaining <= 0 ? 'ready' : remaining <= 10 ? 'warning' : '';
 
   return `<div class="timer-bar">
-    <div class="timer-inner">
-      <div style="display:flex;gap:4px">
+    <div class="timer-inner" style="flex-wrap:wrap">
+      <div style="display:flex;gap:4px;align-items:center;width:100%;margin-bottom:4px">
         <button class="timer-type-toggle ${t.type==='rest'?'active':''}" data-timertype="rest">REST</button>
         <button class="timer-type-toggle ${t.type==='cardio'?'active':''}" data-timertype="cardio">CARDIO</button>
+        ${t.type === 'rest' ? `
+          <div class="timer-presets">
+            <button class="timer-preset" data-quicktimer="60">1:00</button>
+            <button class="timer-preset" data-quicktimer="90">1:30</button>
+            <button class="timer-preset" data-quicktimer="120">2:00</button>
+            <button class="timer-preset" data-quicktimer="150">2:30</button>
+            <button class="timer-preset" data-quicktimer="180">3:00</button>
+          </div>
+        ` : ''}
+        <div style="margin-left:auto">
+          <div class="timer-display ${timerClass}">${display}</div>
+        </div>
       </div>
-      <div class="timer-progress"><div class="timer-progress-fill" style="width:${pct}%"></div></div>
-      <div class="timer-display ${timerClass}">${display}</div>
-      <div class="timer-controls">
-        ${t.running ? `
-          <button class="timer-btn" id="timerStop"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg></button>
-        ` : `
-          <button class="timer-btn primary" id="timerStart"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="5,3 19,12 5,21"/></svg></button>
-        `}
-        <button class="timer-btn" id="timerReset"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>
+      <div style="display:flex;align-items:center;gap:8px;width:100%">
+        <div class="timer-progress" style="flex:1"><div class="timer-progress-fill" style="width:${pct}%"></div></div>
+        <div class="timer-controls">
+          ${t.running ? `
+            <button class="timer-btn" id="timerStop"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg></button>
+          ` : `
+            <button class="timer-btn primary" id="timerStart"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="5,3 19,12 5,21"/></svg></button>
+          `}
+          <button class="timer-btn" id="timerReset"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>
+        </div>
       </div>
     </div>
   </div>`;
@@ -1359,23 +1673,58 @@ function bindEvents() {
     btn.onclick = () => { state.view = btn.dataset.view; render(); };
   });
 
+  // Circuit / Individual mode toggle
+  document.getElementById('modeCircuit')?.addEventListener('click', () => {
+    state.accessoryCircuit = true;
+    render();
+  });
+  document.getElementById('modeIndividual')?.addEventListener('click', () => {
+    state.accessoryCircuit = false;
+    render();
+  });
+
+  // Accessory group fold-out toggles
+  document.querySelectorAll('.acc-group-label[data-accgroup]').forEach(label => {
+    label.onclick = () => {
+      const g = label.dataset.accgroup;
+      const grid = document.querySelector('.acc-group-grid[data-accgrid="'+g+'"]');
+      if (grid) {
+        const isOpen = grid.classList.contains('open');
+        grid.classList.toggle('open', !isOpen);
+        label.classList.toggle('open', !isOpen);
+      }
+    };
+  });
+
   // Exercise selection — targeted toggle
   document.querySelectorAll('.ex-chip').forEach(btn => {
     btn.onclick = () => {
       const {section, id} = btn.dataset;
+      if (!section || !id) return; // mode buttons don't have section
       const arr = state.selectedExercises[section];
       const idx = arr.indexOf(id);
       if (idx >= 0) {
         arr.splice(idx, 1);
         btn.classList.remove('selected');
       } else {
-        const limits = {primary:3, accessory:4, cardio:4};
+        const limits = {primary:3, accessory:6, cardio:4};
         if (arr.length < limits[section]) {
           arr.push(id);
           btn.classList.add('selected');
         }
       }
-      // Update the start button count
+      // Update group count badges
+      document.querySelectorAll('.acc-group-label[data-accgroup]').forEach(label => {
+        const g = label.dataset.accgroup;
+        const grid = document.querySelector('.acc-group-grid[data-accgrid="'+g+'"]');
+        if (!grid) return;
+        const chips = grid.querySelectorAll('.ex-chip.selected');
+        let badge = label.querySelector('.acc-count');
+        if (chips.length > 0) {
+          if (!badge) { badge = document.createElement('span'); badge.className = 'acc-count'; label.insertBefore(badge, label.querySelector('.acc-arrow')); }
+          badge.textContent = chips.length;
+        } else if (badge) { badge.remove(); }
+      });
       const total = state.selectedExercises.primary.length + state.selectedExercises.accessory.length + state.selectedExercises.cardio.length;
       const startBtn = document.getElementById('startWorkout');
       if (startBtn) {
@@ -1392,15 +1741,14 @@ function bindEvents() {
     const exercises = [...sel.primary, ...sel.accessory, ...sel.cardio].map(id => {
       const ex = getExercise(id);
       const section = sel.primary.includes(id) ? 'primary' : sel.accessory.includes(id) ? 'accessory' : 'cardio';
-      const defaultSets = section === 'primary' ? 5 : section === 'accessory' ? 4 : 3;
+      const defaultSets = section === 'primary' ? 5 : section === 'accessory' ? 3 : 3;
       const suggested = suggestWeight(id);
       return {
         ...ex, section,
+        isCircuit: section === 'accessory' && state.accessoryCircuit,
+        scheme: 'straight',
         sets: Array.from({length: defaultSets}, () => ({
-          weight: suggested || 0,
-          reps: 0,
-          duration: 0,
-          done: false,
+          weight: suggested || 0, reps: 0, duration: 0, done: false, repLabel: '', targetReps: 0,
         }))
       };
     });
@@ -1409,49 +1757,70 @@ function bindEvents() {
     render();
   });
 
+  // Select-all on focus for number inputs (replaces value on type)
+  document.querySelectorAll('.set-inputs input[type="number"]').forEach(inp => {
+    inp.addEventListener('focus', () => { inp.select(); });
+  });
+
   // Set check toggle — targeted update
   document.querySelectorAll('.set-check').forEach(btn => {
     btn.onclick = () => {
       const ei = +btn.dataset.ei, si = +btn.dataset.si;
       const set = state.workout.exercises[ei].sets[si];
       set.done = !set.done;
-
-      // Toggle the check visually
       btn.classList.toggle('done', set.done);
-
-      // Update volume badges
       let totalVol = 0;
       state.workout.exercises.forEach(ex => {
         ex.sets.forEach(s => { if(s.done) totalVol += (s.weight||0)*(s.reps||0); });
       });
       const totalBadge = document.querySelector('.volume-badge');
       if (totalBadge) totalBadge.textContent = 'VOL: ' + totalVol.toLocaleString() + ' lbs';
-
-      // Start rest timer if checking off
       if (set.done && state.timer.type === 'rest') {
-        startTimer('rest', state.restDuration);
+        // In circuit mode, only start rest after the last accessory in this round
+        const ex = state.workout.exercises[ei];
+        const circuitAccs = state.workout.exercises.filter(e => e.section === 'accessory' && e.isCircuit);
+        if (circuitAccs.length > 0 && ex.isCircuit) {
+          // Check if this is the last circuit exercise in this round
+          const lastCircuitEi = state.workout.exercises.indexOf(circuitAccs[circuitAccs.length - 1]);
+          const allDoneThisRound = circuitAccs.every(e => e.sets[si]?.done);
+          if (ei === lastCircuitEi || allDoneThisRound) {
+            startTimer('rest', state.restDuration);
+          }
+        } else {
+          startTimer('rest', state.restDuration);
+        }
       }
     };
   });
 
-  // Set inputs — with auto-fill weight from set 1
+  // Set inputs — with auto-fill weight from set 1 (only for straight scheme)
   document.querySelectorAll('.set-inputs input').forEach(inp => {
     inp.oninput = () => {
       const ei = +inp.dataset.ei, si = +inp.dataset.si;
       const field = inp.dataset.field;
       const val = parseFloat(inp.value) || 0;
       state.workout.exercises[ei].sets[si][field] = val;
-
-      // Auto-fill: if editing weight on set 1 (si===0), fill remaining sets that are empty or still at old value
+      const exScheme = state.workout.exercises[ei].scheme || 'straight';
       if (field === 'weight' && si === 0 && val > 0) {
-        const sets = state.workout.exercises[ei].sets;
-        for (let s = 1; s < sets.length; s++) {
-          if (!sets[s].done) {
-            sets[s].weight = val;
-            // Update the DOM input directly — no re-render
-            const otherInput = document.querySelector(`input[data-ei="${ei}"][data-si="${s}"][data-field="weight"]`);
-            if (otherInput) otherInput.value = val;
+        if (exScheme === 'straight') {
+          // Auto-fill all unchecked sets with same weight
+          const sets = state.workout.exercises[ei].sets;
+          for (let s = 1; s < sets.length; s++) {
+            if (!sets[s].done) {
+              sets[s].weight = val;
+              const otherInput = document.querySelector('input[data-ei="'+ei+'"][data-si="'+s+'"][data-field="weight"]');
+              if (otherInput) otherInput.value = val;
+            }
           }
+        } else {
+          // Recalculate pyramid/drop from new base
+          applyScheme(state.workout.exercises[ei], exScheme, val);
+          // Update all weight inputs in DOM
+          state.workout.exercises[ei].sets.forEach((s, idx) => {
+            if (idx === 0) return;
+            const otherInput = document.querySelector('input[data-ei="'+ei+'"][data-si="'+idx+'"][data-field="weight"]');
+            if (otherInput) otherInput.value = s.weight || '';
+          });
         }
       }
     };
@@ -1462,8 +1831,8 @@ function bindEvents() {
     btn.onclick = () => {
       const ei = +btn.dataset.addset;
       const ex = state.workout.exercises[ei];
-      const suggested = suggestWeight(ex.id);
-      ex.sets.push({weight: suggested||0, reps:0, duration:0, done:false});
+      const suggested = ex.isManual ? 0 : suggestWeight(ex.id);
+      ex.sets.push({weight: suggested||0, reps:0, duration:0, done:false, repLabel:'', targetReps:0});
       render();
     };
   });
@@ -1475,10 +1844,123 @@ function bindEvents() {
     };
   });
 
+  // Move exercise up/down
+  document.querySelectorAll('[data-moveup]').forEach(btn => {
+    btn.onclick = () => {
+      const ei = +btn.dataset.moveup;
+      const arr = state.workout.exercises;
+      if (ei > 0) { [arr[ei-1], arr[ei]] = [arr[ei], arr[ei-1]]; }
+      render();
+    };
+  });
+  document.querySelectorAll('[data-movedown]').forEach(btn => {
+    btn.onclick = () => {
+      const ei = +btn.dataset.movedown;
+      const arr = state.workout.exercises;
+      if (ei < arr.length - 1) { [arr[ei], arr[ei+1]] = [arr[ei+1], arr[ei]]; }
+      render();
+    };
+  });
+
+  // Remove exercise mid-workout
+  document.querySelectorAll('[data-removeex]').forEach(btn => {
+    btn.onclick = () => {
+      const ei = +btn.dataset.removeex;
+      if (confirm('Remove ' + state.workout.exercises[ei].name + '?')) {
+        state.workout.exercises.splice(ei, 1);
+        render();
+      }
+    };
+  });
+
+  // Scheme pills (pyramid / drop / straight)
+  document.querySelectorAll('[data-schemeei]').forEach(btn => {
+    btn.onclick = () => {
+      const ei = +btn.dataset.schemeei;
+      const scheme = btn.dataset.scheme;
+      const ex = state.workout.exercises[ei];
+      const baseW = ex.sets[0]?.weight || 100;
+      applyScheme(ex, scheme, baseW);
+      render();
+    };
+  });
+
+  // Add exercise mid-workout (from dropdown)
+  document.getElementById('addExerciseBtn')?.addEventListener('click', () => {
+    document.getElementById('addExercisePanel')?.classList.toggle('hidden');
+    document.getElementById('manualEntryBox')?.classList.add('hidden');
+    document.getElementById('editModePanel')?.classList.add('hidden');
+  });
+  document.getElementById('addExClose')?.addEventListener('click', () => {
+    document.getElementById('addExercisePanel')?.classList.add('hidden');
+  });
+  document.getElementById('addExConfirm')?.addEventListener('click', () => {
+    const sel = document.getElementById('addExSelect');
+    if (!sel || !sel.value) return;
+    const exDef = getExercise(sel.value);
+    if (!exDef) return;
+    const suggested = suggestWeight(sel.value);
+    state.workout.exercises.push({
+      ...exDef, section: 'accessory', scheme: 'straight',
+      sets: Array.from({length:3},()=>({weight:suggested||0,reps:0,duration:0,done:false,repLabel:'',targetReps:0}))
+    });
+    document.getElementById('addExercisePanel')?.classList.add('hidden');
+    render();
+  });
+
+  // Manual / Custom exercise
+  document.getElementById('addManualBtn')?.addEventListener('click', () => {
+    document.getElementById('manualEntryBox')?.classList.toggle('hidden');
+    document.getElementById('addExercisePanel')?.classList.add('hidden');
+    document.getElementById('editModePanel')?.classList.add('hidden');
+  });
+  document.getElementById('manualExCancel')?.addEventListener('click', () => {
+    document.getElementById('manualEntryBox')?.classList.add('hidden');
+  });
+  document.getElementById('manualExAdd')?.addEventListener('click', () => {
+    const nameInp = document.getElementById('manualExName');
+    const name = nameInp?.value.trim();
+    if (!name) return;
+    state.workout.exercises.push({
+      id: 'manual_' + Date.now(), name: name, type: 'custom', section: 'accessory',
+      isManual: true, scheme: 'straight',
+      sets: Array.from({length:3},()=>({weight:0,reps:0,duration:0,done:false,repLabel:'',targetReps:0}))
+    });
+    document.getElementById('manualEntryBox')?.classList.add('hidden');
+    render();
+  });
+
+  // Edit mode — toggle shuffle/remove panel
+  document.getElementById('editModeBtn')?.addEventListener('click', () => {
+    document.getElementById('editModePanel')?.classList.toggle('hidden');
+    document.getElementById('addExercisePanel')?.classList.add('hidden');
+    document.getElementById('manualEntryBox')?.classList.add('hidden');
+  });
+
+  // Circuit round add/remove
+  document.getElementById('addCircuitRound')?.addEventListener('click', () => {
+    const acc = state.workout.exercises.filter(ex => ex.section === 'accessory' && ex.isCircuit);
+    acc.forEach(ex => {
+      ex.sets.push({weight:0,reps:0,duration:0,done:false,repLabel:'',targetReps:0});
+    });
+    render();
+  });
+  document.getElementById('removeCircuitRound')?.addEventListener('click', () => {
+    const acc = state.workout.exercises.filter(ex => ex.section === 'accessory' && ex.isCircuit);
+    acc.forEach(ex => {
+      if (ex.sets.length > 1) ex.sets.pop();
+    });
+    render();
+  });
+
   // Finish / Cancel
   document.getElementById('finishWorkout')?.addEventListener('click', saveWorkout);
   document.getElementById('cancelWorkout')?.addEventListener('click', () => {
     if (confirm('Cancel workout? Progress will be lost.')) {
+      cancelTimerTick();
+      state.timer.running = false;
+      state.timer.seconds = 0;
+      state.timer._dinged = false;
       state.workout = null;
       state.building = true;
       render();
@@ -1496,8 +1978,18 @@ function bindEvents() {
       stopTimer();
       state.timer.type = btn.dataset.timertype;
       state.timer.seconds = 0;
+      state.timer._dinged = false;
       state.timer.total = state.timer.type === 'rest' ? state.restDuration : 0;
       render();
+    };
+  });
+
+  // Quick timer presets
+  document.querySelectorAll('[data-quicktimer]').forEach(btn => {
+    btn.onclick = () => {
+      const secs = parseInt(btn.dataset.quicktimer);
+      state.restDuration = secs;
+      startTimer('rest', secs);
     };
   });
 
