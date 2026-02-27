@@ -445,45 +445,45 @@ document.addEventListener('click', ensureAudioCtx, {once: true});
 
 function playDing() {
   try {
-    // Custom WAV chime if set in settings
-    const customChime = localStorage.getItem('ironlog_chime');
-    if (customChime) {
-      const audio = new Audio(customChime);
-      audio.volume = 1.0;
-      audio.play().catch(e => console.warn('Custom chime failed:', e));
-      return;
-    }
     const ctx = ensureAudioCtx();
-    // Guard: if the AudioContext is suspended (e.g. tab was backgrounded), don't schedule
-    // oscillators — they'd fire immediately when the context next resumes (on user tap),
-    // causing a phantom chime when the user hits Play to restart the timer.
-    if (ctx.state !== 'running') return;
-    // Louder, longer three-tone chime for mobile
-    var freqs = [659.25, 830.61, 987.77]; // E5, G#5, B5 — major chord
-    freqs.forEach(function(freq, i) {
-      var osc = ctx.createOscillator();
-      var gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.type = 'triangle';
-      osc.frequency.value = freq;
-      var startAt = ctx.currentTime + i * 0.18;
-      gain.gain.setValueAtTime(0.5, startAt);
-      gain.gain.exponentialRampToValueAtTime(0.01, startAt + 0.8);
-      osc.start(startAt);
-      osc.stop(startAt + 0.8);
-    });
-    // Extra low tone for weight
-    var bass = ctx.createOscillator();
-    var bassGain = ctx.createGain();
-    bass.connect(bassGain);
-    bassGain.connect(ctx.destination);
-    bass.type = 'sine';
-    bass.frequency.value = 329.63; // E4
-    bassGain.gain.setValueAtTime(0.4, ctx.currentTime);
-    bassGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.2);
-    bass.start(ctx.currentTime);
-    bass.stop(ctx.currentTime + 1.2);
+    // Schedule oscillators only once the context is actually running.
+    // Capturing ctx.currentTime inside schedule() (after resume resolves) ensures
+    // start times are in the future — preventing the phantom chime that occurred when
+    // oscillators were scheduled against a frozen currentTime and then fired all at
+    // once the moment the context resumed on the next user tap.
+    function schedule() {
+      var now = ctx.currentTime;
+      var freqs = [659.25, 830.61, 987.77]; // E5, G#5, B5 — major chord
+      freqs.forEach(function(freq, i) {
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'triangle';
+        osc.frequency.value = freq;
+        var startAt = now + i * 0.18;
+        gain.gain.setValueAtTime(0.5, startAt);
+        gain.gain.exponentialRampToValueAtTime(0.01, startAt + 0.8);
+        osc.start(startAt);
+        osc.stop(startAt + 0.8);
+      });
+      // Extra low tone for weight
+      var bass = ctx.createOscillator();
+      var bassGain = ctx.createGain();
+      bass.connect(bassGain);
+      bassGain.connect(ctx.destination);
+      bass.type = 'sine';
+      bass.frequency.value = 329.63; // E4
+      bassGain.gain.setValueAtTime(0.4, now);
+      bassGain.gain.exponentialRampToValueAtTime(0.01, now + 1.2);
+      bass.start(now);
+      bass.stop(now + 1.2);
+    }
+    if (ctx.state === 'running') {
+      schedule();
+    } else {
+      ctx.resume().then(schedule).catch(e => console.warn('Audio resume failed:', e));
+    }
   } catch(e) { console.warn('Audio ding failed:', e); }
 }
 
@@ -1310,17 +1310,6 @@ function renderSettings() {
           ${[60,90,120,150,180,210,240,300].map(s => `<option value="${s}" ${state.restDuration===s?'selected':''}>${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}</option>`).join('')}
         </select>
       </div>
-      <div class="setting-row">
-        <div>
-          <div class="setting-label">Timer Chime</div>
-          <div class="setting-desc">${localStorage.getItem('ironlog_chime') ? 'Custom file loaded' : 'Default synth chime'}</div>
-        </div>
-        <div style="display:flex;gap:6px">
-          <button class="btn btn-secondary btn-sm" id="uploadChime">Upload WAV</button>
-          ${localStorage.getItem('ironlog_chime') ? '<button class="btn btn-secondary btn-sm" style="color:var(--red)" id="clearChime">Clear</button>' : ''}
-        </div>
-      </div>
-      <input type="file" id="chimeFile" accept="audio/*" class="hidden">
     </div>
 
     <div class="card">
@@ -2153,26 +2142,6 @@ function bindEvents() {
   document.getElementById('restDuration')?.addEventListener('change', (e) => {
     state.restDuration = parseInt(e.target.value);
     localStorage.setItem('ironlog_restDuration', state.restDuration);
-  });
-
-  document.getElementById('uploadChime')?.addEventListener('click', () => {
-    document.getElementById('chimeFile').click();
-  });
-  document.getElementById('chimeFile')?.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      localStorage.setItem('ironlog_chime', ev.target.result);
-      showToast('Chime updated!', 'success');
-      render();
-    };
-    reader.readAsDataURL(file);
-  });
-  document.getElementById('clearChime')?.addEventListener('click', () => {
-    localStorage.removeItem('ironlog_chime');
-    showToast('Reset to default chime', 'success');
-    render();
   });
 
   document.getElementById('copyScript')?.addEventListener('click', () => {
