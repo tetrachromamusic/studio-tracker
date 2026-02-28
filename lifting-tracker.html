@@ -443,6 +443,33 @@ function ensureAudioCtx() {
 document.addEventListener('touchstart', ensureAudioCtx, {once: true});
 document.addEventListener('click', ensureAudioCtx, {once: true});
 
+// ---- Keepalive oscillator ----
+// iOS suspends the AudioContext the moment the screen locks or the app is
+// backgrounded, killing any pending audio. A near-silent oscillator (gain
+// ≈ 0, completely inaudible) signals to the OS that the audio session is
+// still active, which prevents the suspension and allows the chime to fire.
+let _keepalive = null;
+
+function startKeepalive() {
+  stopKeepalive();
+  const ctx = ensureAudioCtx();
+  if (ctx.state !== 'running') return;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  gain.gain.value = 0.00001; // inaudible
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start();
+  _keepalive = osc;
+}
+
+function stopKeepalive() {
+  if (_keepalive) {
+    try { _keepalive.stop(); } catch(e) {}
+    _keepalive = null;
+  }
+}
+
 function playDing() {
   try {
     const ctx = ensureAudioCtx();
@@ -514,6 +541,7 @@ function startTimer(type='rest', duration=null) {
 
   // Warm audio context so it's ready when timer ends
   ensureAudioCtx();
+  if (type === 'rest' && total > 0) startKeepalive();
 
   function tick() {
     if (!state.timer.running) return;
@@ -523,6 +551,7 @@ function startTimer(type='rest', duration=null) {
     if (type === 'rest' && total > 0 && elapsed >= total && !state.timer._dinged) {
       state.timer._dinged = true;
       state.timer.running = false;
+      stopKeepalive();
       playDing();
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('Lift Tracker', {body: 'Rest complete — get after it!'});
@@ -563,7 +592,8 @@ document.addEventListener('visibilitychange', function() {
       state.timer._dinged = true;
       state.timer.running = false;
       cancelTimerTick();
-      playDing(); // works if AudioContext was kept running; skipped safely if suspended
+      stopKeepalive();
+      playDing();
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('Lift Tracker', {body: 'Rest complete — get after it!'});
       }
@@ -577,6 +607,7 @@ document.addEventListener('visibilitychange', function() {
 
 function stopTimer() {
   cancelTimerTick();
+  stopKeepalive();
   state.timer.running = false;
   state.timer.worker = null;
   // Targeted update — swap pause button to play button
@@ -593,6 +624,7 @@ function stopTimer() {
 
 function resetTimer() {
   cancelTimerTick();
+  stopKeepalive();
   state.timer.running = false;
   state.timer.worker = null;
   state.timer.seconds = 0;
